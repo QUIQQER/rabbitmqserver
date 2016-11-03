@@ -17,11 +17,11 @@
         "url": "http://www.pcsg.de"
     },
     "require": {
-        
+        "php-amqplib/php-amqplib": "2.6.*"
     }
     ,"autoload": {
   "psr-4": {
-      "QUI\\RabbitMQServer\\": "src/qui/rabbitmqserver"
+      "QUI\\RabbitMQServer\\": "src/QUI/RabbitMQServer"
    }
 }
 
