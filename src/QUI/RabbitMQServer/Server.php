@@ -2,6 +2,9 @@
 
 namespace QUI\RabbitMQServer;
 
+use PhpAmqpLib\Channel\AMQPChannel;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 use QUI;
 use QUI\QueueManager\Interfaces\IQueueServer;
 use QUI\QueueManager\Exceptions\ServerException;
@@ -17,6 +20,13 @@ use QUI\QueueManager\QueueJob;
 class Server implements IQueueServer
 {
     /**
+     * RabbitMQ queue channel
+     *
+     * @var AMQPChannel
+     */
+    protected static $Channel = null;
+
+    /**
      * Adds a single job to the queue of a server
      *
      * @param QueueJob $QueueJob - The job to add to the queue
@@ -26,31 +36,18 @@ class Server implements IQueueServer
      */
     public static function queueJob(QueueJob $QueueJob)
     {
-        try {
-            QUI::getDataBase()->insert(
-                'queueserver_jobs',
-                array(
-                    'jobData'        => json_encode($QueueJob->getData()),
-                    'jobWorker'      => $QueueJob->getWorkerClass(),
-                    'status'         => self::JOB_STATUS_QUEUED,
-                    'priority'       => $QueueJob->getAttribute('priority') ?: 1,
-                    'deleteOnFinish' => $QueueJob->getAttribute('deleteOnFinish') ? 1 : 0,
-                    'createTime'     => time(),
-                    'lastUpdateTime' => time()
-                )
-            );
-        } catch (\Exception $Exception) {
-            QUI\System\Log::addError(
-                self::class . ' -> queueJob() :: ' . $Exception->getMessage()
-            );
+        $Channel = self::getChannel();
 
-            throw new QUI\Exception(array(
-                'quiqqer/queueserver',
-                'exception.queueserver.job.queue.error'
-            ));
-        }
+        $workerData = array(
+            'jobData'   => json_encode($QueueJob->getData()),
+            'jobWorker' => $QueueJob->getWorkerClass(),
+        );
 
-        return QUI::getDataBase()->getPDO()->lastInsertId();
+        $Channel->basic_publish(
+            new AMQPMessage(json_encode($workerData))
+        );
+
+        // @todo Priorität, deleteOnFinish ?
     }
 
     /**
@@ -494,5 +491,30 @@ class Server implements IQueueServer
                 )
             )
         );
+    }
+
+    /**
+     * Get RabbitMQ queue channel
+     *
+     * @return AMQPChannel
+     */
+    protected static function getChannel()
+    {
+        if (!is_null(self::$Channel)) {
+            return self::$Channel;
+        }
+
+        // @todo Einstellungen in Settings auslagern
+        $Connection = new AMQPStreamConnection(
+            'localhost',
+            5672,
+            'guest',
+            'guest'
+        );
+
+        self::$Channel = $Connection->channel();
+        self::$Channel->queue_declare('quiqqer', false, false, false, false);
+
+        return self::$Channel;
     }
 }
