@@ -83,7 +83,7 @@ class Server implements IQueueServer
                     )
                 ),
                 '',
-                'quiqqer'
+                'quiqqer_queue'
             );
 
             self::close();
@@ -423,7 +423,11 @@ class Server implements IQueueServer
         );
 
         self::$Channel = self::$Connection->channel();
-        self::$Channel->queue_declare('quiqqer', false, true, false, false);
+
+//        self::$Channel->exchange_declare('quiqqer_exchange', 'direct', false, true, false);
+        self::$Channel->queue_declare('quiqqer_queue', false, true, false, false);
+//        self::$Channel->queue_bind('quiqqer_queue', 'quiqqer_exchange');
+//        self::$Channel->queue_declare('quiqqer', false, true, false, false);
 
         return self::$Channel;
     }

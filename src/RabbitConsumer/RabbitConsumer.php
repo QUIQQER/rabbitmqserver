@@ -98,7 +98,11 @@ pcntl_signal(SIGINT, "shutdown");
 pcntl_signal(SIGTERM, "shutdown");
 pcntl_signal(SIGHUP, "shutdown");
 
-$Channel->basic_consume('quiqqer', '', false, false, false, false, $callback);
+//$Channel->queue_declare('quiqqer_queue', false, true, false, false);
+//$Channel->queue_bind('quiqqer_queue', 'quiqqer_exchange');
+$Channel->basic_qos(null, 1, false);
+$Channel->basic_consume('quiqqer_queue', '', false, false, false, false, $callback);
+
 
 while (count($Channel->callbacks)) {
     $Channel->wait();
