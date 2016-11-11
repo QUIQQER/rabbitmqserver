@@ -1,0 +1,74 @@
+#! /bin/sh
+
+# RabbitMQ Consumer Server service
+# App Version: 1
+# author Patrick Müller
+
+### BEGIN INIT INFO
+# Provides:          RabbitConsumerServer
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Required-Stop:     $local_fs $remote_fs $network $syslog
+# Default-Start:     2 3 4 5                                                                                                                                     
+# Default-Stop:      0 1 6
+# Short-Description: RabbitMQ Consumer Server
+# Description:       RabbitMQ Consumer Server - Manages multiple RabbitMQ consumers
+### END INIT INFO                                                                                                                                                
+
+
+
+                                                                                                                                                                 
+############### EDIT  #################
+# path to RabbitConsumer.php
+APP_PATH="/path/to/rabbitconsumer"
+
+# startup args
+DAEMON_OPTS=" $APP_PATH/RabbitConsumerServer.php"
+
+# path to php bin
+DAEMON=/usr/bin/php
+
+# script name
+NAME="RabbitConsumerServer"
+
+# app name
+DESC="RabbitMQ Consumer Server"
+
+# user
+RUN_AS="user"
+
+# path to pid file save location (should be QUIQQER var)
+PID_FILE="/path/to/pidfile/$NAME.pid"
+
+############### END EDIT  ##################
+
+
+
+test -x $DAEMON || exit 0
+
+set -e
+
+case "$1" in
+  start)
+        echo "Starting $DESC"
+        /sbin/start-stop-daemon -d $APP_PATH -c $RUN_AS --start --background --pidfile $PID_FILE  --make-pidfile --exec $DAEMON -- $DAEMON_OPTS
+        ;;
+  stop)
+        echo "Stopping $DESC"
+        /sbin/start-stop-daemon --stop --pidfile $PID_FILE
+        rm $PID_FILE
+        ;;
+
+  restart|force-reload)
+        echo "Restarting $DESC"
+        /sbin/start-stop-daemon --stop --pidfile $PID_FILE
+        sleep 1
+        /sbin/start-stop-daemon -d $APP_PATH -c $RUN_AS --start --background --pidfile $PID_FILE  --make-pidfile --exec $DAEMON -- $DAEMON_OPTS
+        ;;
+  *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

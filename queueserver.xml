@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queueserver>
+    <server class="\QUI\RabbitMQServer\Server">
+        <title>
+            <locale group="quiqqer/rabbitmqserver" var="server.title" />
+        </title>
+        <description>
+            <locale group="quiqqer/rabbitmqserver" var="server.description" />
+        </description>
+    </server>
+</queueserver>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiqqer>
+    <settings>
+
+        <config>
+            <section name="server">
+                <conf name="host">
+                    <type><![CDATA[string]]></type>
+                </conf>
+                <conf name="port">
+                    <type><![CDATA[string]]></type>
+                </conf>
+                <conf name="user">
+                    <type><![CDATA[string]]></type>
+                </conf>
+                <conf name="password">
+                    <type><![CDATA[string]]></type>
+                </conf>
+                <conf name="vhost">
+                    <type><![CDATA[string]]></type>
+                    <defaultvalue>/</defaultvalue>
+                </conf>
+                <conf name="insist">
+                    <type><![CDATA[bool]]></type>
+                </conf>
+                <conf name="login_method">
+                    <type><![CDATA[string]]></type>
+                    <defaultvalue>AMQPLAIN</defaultvalue>
+                </conf>
+                <conf name="locale">
+                    <type><![CDATA[string]]></type>
+                    <defaultvalue>en_US</defaultvalue>
+                </conf>
+                <conf name="connection_timeout">
+                    <type><![CDATA[string]]></type>
+                    <defaultvalue>3.0</defaultvalue>
+                </conf>
+                <conf name="read_write_timeout">
+                    <type><![CDATA[string]]></type>
+                    <defaultvalue>3.0</defaultvalue>
+                </conf>
+                <conf name="keepalive">
+                    <type><![CDATA[bool]]></type>
+                </conf>
+                <conf name="heartbeat">
+                    <type><![CDATA[integer]]></type>
+                    <defaultvalue>0</defaultvalue>
+                </conf>
+            </section>
+            <section name="consumer">
+                <conf name="consumer_count">
+                    <type><![CDATA[integer]]></type>
+                    <defaultvalue>1</defaultvalue>
+                </conf>
+            </section>
+        </config>
+
+        <window name="rabbitmqserversettings">
+            <title>
+                <locale group="quiqqer/rabbitmqserver" var="settings.title"/>
+            </title>
+            <params>
+                <icon>fa fa-server</icon>
+            </params>
+
+            <categories>
+                <category name="rabbitmqserver" index="1">
+                    <text>
+                        <locale group="quiqqer/rabbitmqserver" var="settings.category.rabbitmqserver.title"/>
+                    </text>
+                    <icon>fa fa-server</icon>
+
+                    <settings title="server" name="server">
+                        <title>
+                            <locale group="quiqqer/rabbitmqserver" var="settings.rabbitmqserver.server.title"/>
+                        </title>
+
+                        <input conf="server.host">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.host.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.port">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.port.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.user">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.user.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.password" type="password">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.password.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.vhost">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.vhost.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.insist" type="checkbox">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.insist.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.login_method">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.login_method.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.locale">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.locale.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.connection_timeout">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.connection_timeout.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.read_write_timeout">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.read_write_timeout.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.keepalive" type="checkbox">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.keepalive.title"/>
+                            </text>
+                        </input>
+                        <input conf="server.heartbeat">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.server.settings.heartbeat.title"/>
+                            </text>
+                        </input>
+                    </settings>
+                    <settings title="consumer" name="consumer">
+                        <title>
+                            <locale group="quiqqer/rabbitmqserver" var="settings.rabbitmqserver.consumer.title"/>
+                        </title>
+
+                        <input conf="consumer.consumer_count">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.consumer.settings.consumer_count.title"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.consumer.settings.consumer_count.description"/>
+                            </description>
+                        </input>
+                    </settings>
+                </category>
+
+            </categories>
+
+        </window>
+
+    </settings>
+</quiqqer>

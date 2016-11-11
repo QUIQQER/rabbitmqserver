@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<locales>
+
+    <groups name="quiqqer/rabbitmqserver" datatype="js">
+
+
+    </groups>
+
+    <groups name="quiqqer/rabbitmqserver" datatype="php,js">
+
+        <!-- Settings -->
+        <locale name="settings.title">
+            <de><![CDATA[RabbitMQ-Modul]]></de>
+        </locale>
+        <locale name="settings.category.rabbitmqserver.title">
+            <de><![CDATA[Server]]></de>
+        </locale>
+
+
+        <locale name="settings.rabbitmqserver.server.title">
+            <de><![CDATA[RabbitMQ Server-Einstellungen]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.host.title">
+            <de><![CDATA[host]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.port.title">
+            <de><![CDATA[port]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.user.title">
+            <de><![CDATA[user]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.password.title">
+            <de><![CDATA[password]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.vhost.title">
+            <de><![CDATA[vhost]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.insist.title">
+            <de><![CDATA[insist]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.login_method.title">
+            <de><![CDATA[login_method]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.locale.title">
+            <de><![CDATA[locale]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.connection_timeout.title">
+            <de><![CDATA[connection_timeout]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.read_write_timeout.title">
+            <de><![CDATA[read_write_timeout]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.keepalive.title">
+            <de><![CDATA[keepalive]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.server.settings.heartbeat.title">
+            <de><![CDATA[heartbeat]]></de>
+        </locale>
+
+
+        <locale name="settings.rabbitmqserver.consumer.title">
+            <de><![CDATA[RabbitMQ Consumer]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.consumer.settings.consumer_count.title">
+            <de><![CDATA[Anzahl Consumer]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.consumer.settings.consumer_count.description">
+            <de><![CDATA[Bestimmt die Anzahl an Consumern, die parallel laufen und Jobs bearbeiten.]]></de>
+        </locale>
+
+    </groups>
+
+    <groups name="quiqqer/rabbitmqserver" datatype="php">
+
+        <locale name="server.title">
+            <de><![CDATA[RabbitMQ]]></de>
+        </locale>
+        <locale name="server.description">
+            <de><![CDATA[Jobs werden mittels RabbiMQ-Server ausgeführt. Setzt voraus, dass ein entsprechendes Server installiert ist und läuft.]]></de>
+        </locale>
+
+    </groups>
+
+</locales>

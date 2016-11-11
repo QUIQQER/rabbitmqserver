@@ -1,28 +1,28 @@
 {
-    "name" : "quiqqer/rabbitmqserver",
-    "type" : "quiqqer-module",
-    "description" : "RabbitMQ Quiqqer Module to use RabbitMQ message queue with the quiqqer queue manager",
-    "version" : "dev-dev",
-    "license" : "GPL-3.0+",
-    "authors" : [
-        {
-            "name": "Patrick Müller",
-            "email": "p.mueller@pcsg.de",
-            "homepage": "http://www.pcsg.de",
-            "role": "Developer"
-        }
-    ],
-    "support" : {
-        "email": "support@pcsg.de",
-        "url": "http://www.pcsg.de"
-    },
-    "require": {
-        "php-amqplib/php-amqplib": "2.6.*"
+  "name": "quiqqer/rabbitmqserver",
+  "type": "quiqqer-module",
+  "description": "RabbitMQ Quiqqer Module to use RabbitMQ message queue with the quiqqer queue manager",
+  "version": "dev-dev",
+  "license": "GPL-3.0+",
+  "authors": [
+    {
+      "name": "Patrick Müller",
+      "email": "p.mueller@pcsg.de",
+      "homepage": "http://www.pcsg.de",
+      "role": "Developer"
     }
-    ,"autoload": {
-  "psr-4": {
+  ],
+  "support": {
+    "email": "support@pcsg.de",
+    "url": "http://www.pcsg.de"
+  },
+  "require": {
+    "quiqqer/queuemanager": "dev-dev",
+    "php-amqplib/php-amqplib": "2.6.*"
+  },
+  "autoload": {
+    "psr-4": {
       "QUI\\RabbitMQServer\\": "src/QUI/RabbitMQServer"
-   }
-}
-
+    }
+  }
 }

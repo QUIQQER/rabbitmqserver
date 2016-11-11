@@ -7,8 +7,8 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 use QUI;
 use QUI\QueueManager\Interfaces\IQueueServer;
-use QUI\QueueManager\Exceptions\ServerException;
 use QUI\QueueManager\QueueJob;
+use QUI\QueueServer\Server as QUIQServer;
 
 /**
  * Class QueueServer
@@ -20,11 +20,25 @@ use QUI\QueueManager\QueueJob;
 class Server implements IQueueServer
 {
     /**
+     * RabbitMQ Connection object
+     *
+     * @var AMQPStreamConnection
+     */
+    protected static $Connection = null;
+
+    /**
      * RabbitMQ queue channel
      *
      * @var AMQPChannel
      */
     protected static $Channel = null;
+
+    /**
+     * Config object of package
+     *
+     * @var QUI\Config
+     */
+    protected static $Config = null;
 
     /**
      * Adds a single job to the queue of a server
@@ -36,18 +50,57 @@ class Server implements IQueueServer
      */
     public static function queueJob(QueueJob $QueueJob)
     {
-        $Channel = self::getChannel();
+        try {
+            QUI::getDataBase()->insert(
+                QUIQServer::getJobTable(),
+                array(
+                    'jobData'        => json_encode($QueueJob->getData()),
+                    'jobWorker'      => $QueueJob->getWorkerClass(),
+                    'status'         => self::JOB_STATUS_QUEUED,
+                    'priority'       => $QueueJob->getAttribute('priority') ?: 1,
+                    'deleteOnFinish' => $QueueJob->getAttribute('deleteOnFinish') ? 1 : 0,
+                    'createTime'     => time(),
+                    'lastUpdateTime' => time()
+                )
+            );
 
-        $workerData = array(
-            'jobData'   => json_encode($QueueJob->getData()),
-            'jobWorker' => $QueueJob->getWorkerClass(),
-        );
+            $Channel = self::getChannel();
+            $jobId   = QUI::getDataBase()->getPDO()->lastInsertId();
 
-        $Channel->basic_publish(
-            new AMQPMessage(json_encode($workerData))
-        );
+            $workerData = array(
+                'jobId'         => $jobId,
+                'jobData'       => json_encode($QueueJob->getData()),
+                'jobAttributes' => $QueueJob->getAttributes(),
+                'jobWorker'     => $QueueJob->getWorkerClass()
+            );
 
-        // @todo Priorität, deleteOnFinish ?
+            $Channel->basic_publish(
+                new AMQPMessage(
+                    json_encode($workerData),
+                    array(
+                        'priority'      => $QueueJob->getAttribute('priority') ?: 1,
+                        'delivery_mode' => 2 // make message durable
+                    )
+                ),
+                '',
+                'quiqqer'
+            );
+
+            self::close();
+        } catch (\Exception $Exception) {
+            QUI\System\Log::addError(
+                self::class . ' -> queueJob() :: ' . $Exception->getMessage()
+            );
+
+            throw new QUI\Exception(array(
+                'quiqqer/rabbitmqserver',
+                'exception.rabbitmqserver.job.queue.error'
+            ));
+        }
+
+        self::setJobStatus($jobId, self::JOB_STATUS_QUEUED);
+
+        return $jobId;
     }
 
     /**
@@ -272,158 +325,6 @@ class Server implements IQueueServer
     }
 
     /**
-     * Execute the next job in the queue
-     *
-     * @throws ServerException
-     */
-    public static function executeNextJob()
-    {
-        $job = self::fetchNextJob();
-
-        if (!$job) {
-            return;
-        }
-
-        $jobWorkerClass = $job['jobWorker'];
-
-        if (!class_exists($jobWorkerClass)) {
-            throw new ServerException(array(
-                'quiqqer/queueserver',
-                'exception.queueserver.job.worker.not.found',
-                array(
-                    'jobWorkerClass' => $jobWorkerClass
-                )
-            ), 404);
-        }
-
-        $jobId = $job['id'];
-
-        /** @var QUI\QueueManager\Interfaces\IQueueWorker $Worker */
-        $Worker = new $jobWorkerClass($jobId, json_decode($job['jobData'], true));
-
-        self::setJobStatus($jobId, IQueueServer::JOB_STATUS_RUNNING);
-
-        try {
-            $jobResult = $Worker->execute();
-        } catch (\Exception $Exception) {
-            self::writeJobLogEntry($jobId, $Exception->getMessage());
-            self::setJobStatus($jobId, IQueueServer::JOB_STATUS_ERROR);
-            return;
-        }
-
-        if ($job['deleteOnFinish']) {
-            self::deleteJob($jobId);
-            return;
-        }
-
-        if (self::setJobResult($jobId, $jobResult)) {
-            self::setJobStatus($jobId, self::JOB_STATUS_FINISHED);
-        } else {
-            self::setJobStatus($jobId, self::JOB_STATUS_ERROR);
-        }
-    }
-
-    /**
-     * Checks if there are still jobs in the queue that are not finished
-     *
-     * @return bool
-     */
-    public static function hasNextJob()
-    {
-        $result = QUI::getDataBase()->fetch(array(
-            'count' => 1,
-            'from'  => 'queueserver_jobs',
-            'where' => array(
-                'status' => self::JOB_STATUS_QUEUED
-            )
-        ));
-
-        $count = (int)current(current($result));
-
-        return $count > 0;
-    }
-
-    /**
-     * Fetch job data for next job in the queue (with highest priority)
-     *
-     * @return array|false
-     */
-    protected static function fetchNextJob()
-    {
-        $result = QUI::getDataBase()->fetch(array(
-            'select' => array(
-                'id',
-                'jobData',
-                'jobWorker',
-                'deleteOnFinish'
-            ),
-            'from'   => 'queueserver_jobs',
-            'where'  => array(
-                'status' => self::JOB_STATUS_QUEUED
-            ),
-            'limit'  => 1,
-            'order'  => array(
-                'id'       => 'ASC',
-                'priority' => 'DESC'
-            )
-        ));
-
-        if (empty($result)) {
-            return false;
-        }
-
-        return current($result);
-    }
-
-    /**
-     * Get list of jobs
-     *
-     * @return array
-     */
-    public static function getJobList($searchParams)
-    {
-        $Grid       = new QUI\Utils\Grid($searchParams);
-        $gridParams = $Grid->parseDBParams($searchParams);
-
-        $sortOn = 'id';
-        $sortBy = 'ASC';
-
-        if (isset($searchParams['sortOn'])
-            && !empty($searchParams['sortOn'])
-        ) {
-            $sortOn = $searchParams['sortOn'];
-        }
-
-        if (isset($searchParams['sortBy'])
-            && !empty($searchParams['sortBy'])
-        ) {
-            $sortBy = $searchParams['sortBy'];
-        }
-
-        $result = QUI::getDataBase()->fetch(array(
-            'select' => array(
-                'id',
-                'status',
-                'jobWorker',
-                'priority'
-            ),
-            'from'   => 'queueserver_jobs',
-            'limit'  => $gridParams['limit'],
-            'order'  => $sortOn . ' ' . $sortBy
-        ));
-
-        $resultCount = QUI::getDataBase()->fetch(array(
-            'count' => 1,
-            'from'  => 'queueserver_jobs'
-        ));
-
-        return $Grid->parseResult(
-            $result,
-            current(current($resultCount))
-        );
-    }
-
-    /**
      * Write log entry for a job
      *
      * @param integer $jobId
@@ -498,23 +399,62 @@ class Server implements IQueueServer
      *
      * @return AMQPChannel
      */
-    protected static function getChannel()
+    public static function getChannel()
     {
         if (!is_null(self::$Channel)) {
             return self::$Channel;
         }
 
-        // @todo Einstellungen in Settings auslagern
-        $Connection = new AMQPStreamConnection(
-            'localhost',
-            5672,
-            'guest',
-            'guest'
+        self::$Connection = new AMQPStreamConnection(
+            self::getServerSetting('host'),
+            self::getServerSetting('port'),
+            self::getServerSetting('user'),
+            self::getServerSetting('password'),
+            self::getServerSetting('vhost') ?: '/',
+            self::getServerSetting('insist') ? true : false,
+            self::getServerSetting('login_method') ?: 'AMQPLAIN',
+            null,
+            self::getServerSetting('locale') ?: 'en_US',
+            self::getServerSetting('connection_timeout') ?: 3.0,
+            self::getServerSetting('read_write_timeout') ?: 3.0,
+            null,
+            self::getServerSetting('keepalive') ? true : false,
+            self::getServerSetting('heartbeat') ?: 0
         );
 
-        self::$Channel = $Connection->channel();
-        self::$Channel->queue_declare('quiqqer', false, false, false, false);
+        self::$Channel = self::$Connection->channel();
+        self::$Channel->queue_declare('quiqqer', false, true, false, false);
 
         return self::$Channel;
+    }
+
+    /**
+     * Get server setting
+     *
+     * @param string $key - config key
+     * @return array|string
+     */
+    protected static function getServerSetting($key)
+    {
+        if (self::$Config) {
+            return self::$Config->get('server', $key);
+        }
+
+        self::$Config = QUI::getPackage('quiqqer/rabbitmqserver')->getConfig();
+
+        return self::$Config->get('server', $key);
+    }
+
+    /**
+     * Close connection to RabbitMQ server
+     *
+     * @return void
+     */
+    public static function close()
+    {
+        self::$Channel->close();
+        self::$Connection->close();
+
+        self::$Channel = null;
     }
 }
