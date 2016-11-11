@@ -100,21 +100,11 @@ function stopRabbitConsumers()
         if (!$status
             || !$status['running']
         ) {
-            QUI\System\Log::addError(
-                'Tried to stop RabbitConsumer.php process (pid: ' . $pid . ') but this process is not running anymore.'
-            );
-
             unset($consumerProcesses[$pid]);
             continue;
         }
 
-        $status = proc_close($process);
-
-        if ($status !== 0) {
-            QUI\System\Log::addError(
-                'Status code of RabbitConsumer.php process (pid: ' . $pid . ') that was stopped was not 0 but ' . $status
-            );
-        }
+        proc_close($process);
 
         echo "Stopped RabbitConsumer.php process (pid: " . $pid . ")";
 
