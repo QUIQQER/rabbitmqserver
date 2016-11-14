@@ -84,7 +84,7 @@ $callback = function ($msg) {
  *
  * @return void
  */
-function shutdown()
+function shutdown($sig)
 {
     global $Channel;
     $Channel->close();
@@ -102,7 +102,6 @@ pcntl_signal(SIGHUP, "shutdown");
 //$Channel->queue_bind('quiqqer_queue', 'quiqqer_exchange');
 $Channel->basic_qos(null, 1, false);
 $Channel->basic_consume('quiqqer_queue', '', false, false, false, false, $callback);
-
 
 while (count($Channel->callbacks)) {
     $Channel->wait();

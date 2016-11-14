@@ -74,11 +74,19 @@ class Server implements IQueueServer
                 'jobWorker'     => $QueueJob->getWorkerClass()
             );
 
+            $priority = (int)$QueueJob->getAttribute('priority');
+
+            // max. priority limit for rabbit mq queues
+            // see: https://www.rabbitmq.com/priority.html [14.11.2016]
+            if ($priority > 255) {
+                $priority = 255;
+            }
+
             $Channel->basic_publish(
                 new AMQPMessage(
                     json_encode($workerData),
                     array(
-                        'priority'      => $QueueJob->getAttribute('priority') ?: 1,
+                        'priority'      => $priority,
                         'delivery_mode' => 2 // make message durable
                     )
                 ),
@@ -318,6 +326,116 @@ class Server implements IQueueServer
                 'id' => $jobId
             )
         );
+
+        return true;
+    }
+
+    /**
+     * Get event log for specific job
+     *
+     * @param integer $jobId
+     * @return array
+     */
+    public static function getJobLog($jobId)
+    {
+        $jobData = self::getJobData($jobId);
+        $jobLog  = $jobData['jobLog'];
+
+        if (empty($jobLog)) {
+            return array();
+        }
+
+        return json_decode($jobLog, true);
+    }
+
+    /**
+     * Cancel a job
+     *
+     * @param integer - $jobId
+     * @return bool - success
+     *
+     * @throws QUI\Exception
+     */
+    public static function deleteJob($jobId)
+    {
+        // currently not possible with RabbitMQ
+        // https://discuss.pivotal.io/hc/en-us/community/posts/205630238-How-to-delete-messages-with-an-specific-routing-key-from-a-queue-
+        return false;
+    }
+
+    /**
+     * Clone a job and queue it immediately
+     *
+     * @param integer $jobId - Job ID
+     * @param integer $priority - (new) job priority
+     * @return integer
+     *
+     * @throws QUI\Exception
+     */
+    public static function cloneJob($jobId, $priority)
+    {
+        $jobData = self::getJobData($jobId);
+
+        $priority = (int)$priority;
+
+        // max. priority limit for rabbit mq queues
+        // see: https://www.rabbitmq.com/priority.html [14.11.2016]
+        if ($priority > 255) {
+            $priority = 255;
+        }
+
+        $jobData['priority'] = $priority;
+
+        if ($jobData['id']) {
+            unset($jobData['id']);
+        }
+
+        try {
+            QUI::getDataBase()->insert(
+                QUIQServer::getJobTable(),
+                $jobData
+            );
+
+            $Channel  = self::getChannel();
+            $newJobId = QUI::getDataBase()->getPDO()->lastInsertId();
+
+            $workerData = array(
+                'jobId'         => $newJobId,
+                'jobData'       => $jobData['jobData'],
+                'jobAttributes' => array(
+                    'priority'       => $jobData['priority'],
+                    'deleteOnFinish' => $jobData['deleteOnFinish']
+                ),
+                'jobWorker'     => $jobData['jobWorker']
+            );
+
+            $Channel->basic_publish(
+                new AMQPMessage(
+                    json_encode($workerData),
+                    array(
+                        'priority'      => $priority ?: 1,
+                        'delivery_mode' => 2 // make message durable
+                    )
+                ),
+                '',
+                'quiqqer_queue'
+            );
+
+            self::close();
+        } catch (\Exception $Exception) {
+            QUI\System\Log::addError(
+                self::class . ' -> cloneJob() :: ' . $Exception->getMessage()
+            );
+
+            throw new QUI\Exception(array(
+                'quiqqer/rabbitmqserver',
+                'exception.rabbitmqserver.job.clone.error'
+            ));
+        }
+
+        self::setJobStatus($newJobId, self::JOB_STATUS_QUEUED);
+
+        return $newJobId;
     }
 
     /**
@@ -351,7 +469,17 @@ class Server implements IQueueServer
         self::$Channel = self::$Connection->channel();
 
 //        self::$Channel->exchange_declare('quiqqer_exchange', 'direct', false, true, false);
-        self::$Channel->queue_declare('quiqqer_queue', false, true, false, false);
+        self::$Channel->queue_declare(
+            'quiqqer_queue',
+            false,
+            true,
+            false,
+            false,
+            false,
+            array(
+                'x-max-priority' => array('I', 255)
+            )
+        );
 //        self::$Channel->queue_bind('quiqqer_queue', 'quiqqer_exchange');
 //        self::$Channel->queue_declare('quiqqer', false, true, false, false);
 

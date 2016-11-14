@@ -38,7 +38,7 @@ function startNewRabbitConsumer()
     global $consumerProcesses;
 
     $process = proc_open(
-        'php -d display_errors=stderr ' . dirname(__FILE__) . '/RabbitConsumer.php',
+        'php ' . dirname(__FILE__) . '/RabbitConsumer.php',
         array(),
         $pipes
     );
@@ -95,7 +95,7 @@ function startRabbitConsumers()
  *
  * @return void
  */
-function stopRabbitConsumers()
+function stopRabbitConsumers($sig)
 {
     global $consumerProcesses;
 
@@ -105,15 +105,24 @@ function stopRabbitConsumers()
         if (!$status
             || !$status['running']
         ) {
-            unset($consumerProcesses[$pid]);
             continue;
+        }
+
+        // get child php process (because proc_open starts processes via seperate 'sh ...' process)
+        exec('pgrep -P ' . $pid, $children);
+
+        foreach ($children as $childPid) {
+            try {
+                posix_kill($childPid, SIGINT);
+            } catch (\Exception $Exception) {
+                echo "An error occurred while trying to send INT signal to php process (pid: " . $childPid . ")."
+                    . " Please kill manually.";
+            }
         }
 
         proc_close($process);
 
         echo "Stopped RabbitConsumer.php process (pid: " . $pid . ")";
-
-        unset($consumerProcesses[$pid]);
     }
 
     exit;

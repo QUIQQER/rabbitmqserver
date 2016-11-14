@@ -54,7 +54,7 @@ case "$1" in
         ;;
   stop)
         echo "Stopping $DESC"
-        /sbin/start-stop-daemon --stop --pidfile $PID_FILE
+        /sbin/start-stop-daemon --stop --signal INT --pidfile $PID_FILE
         rm $PID_FILE
         ;;
 
