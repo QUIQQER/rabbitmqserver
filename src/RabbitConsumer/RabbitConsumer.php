@@ -18,7 +18,7 @@ $callback = function ($msg) {
 
     if (json_last_error() !== JSON_ERROR_NONE) {
         QUI\System\Log::addError(
-            'ConsumerSpawn.php :: JSON error on job data json_decode ('
+            'RabbitConsumer.php :: JSON error on job data json_decode ('
             . json_last_error_msg() . ' [code: ' . json_last_error() . ']. Abort process.'
         );
 
@@ -33,7 +33,7 @@ $callback = function ($msg) {
         || !isset($job['jobAttributes'])
     ) {
         QUI\System\Log::addError(
-            'ConsumerSpawn.php :: job information array missing keys. Abort process.'
+            'RabbitConsumer.php :: job information array missing keys. Abort process.'
         );
 
         return;

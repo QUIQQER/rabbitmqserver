@@ -3,6 +3,11 @@
 define('QUIQQER_SYSTEM', true);
 require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/header.php';
 
+if (!function_exists('pcntl_signal')) {
+    echo 'Could not find function "pcntl_signal". Is PHP pcntl extension installed and activated?';
+    exit(-1);
+}
+
 // run as daemon (forever)
 set_time_limit(0);
 

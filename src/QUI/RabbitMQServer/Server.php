@@ -220,36 +220,6 @@ class Server implements IQueueServer
     }
 
     /**
-     * Cancel a job
-     *
-     * @param integer - $jobId
-     * @return bool - success
-     *
-     * @throws QUI\Exception
-     */
-    public static function deleteJob($jobId)
-    {
-        switch (self::getJobStatus($jobId)) {
-            case self::JOB_STATUS_RUNNING:
-                throw new QUI\Exception(array(
-                    'quiqqer/queueserver',
-                    'exception.queueserver.cancel.job.running',
-                    array(
-                        'jobId' => $jobId
-                    )
-                ));
-                break;
-        }
-
-        QUI::getDataBase()->delete(
-            'queueserver_jobs',
-            array(
-                'id' => $jobId
-            )
-        );
-    }
-
-    /**
      * Get Database entry for a job
      *
      * @param $jobId
@@ -257,7 +227,7 @@ class Server implements IQueueServer
      *
      * @throws QUI\Exception
      */
-    public static function getJobData($jobId)
+    protected static function getJobData($jobId)
     {
         $result = QUI::getDataBase()->fetch(array(
             'from'  => 'queueserver_jobs',
@@ -346,50 +316,6 @@ class Server implements IQueueServer
             ),
             array(
                 'id' => $jobId
-            )
-        );
-    }
-
-    /**
-     * Get event log for specific job
-     *
-     * @param integer $jobId
-     * @return array
-     */
-    public static function getJobLog($jobId)
-    {
-        $jobData = self::getJobData($jobId);
-        $jobLog  = $jobData['jobLog'];
-
-        if (empty($jobLog)) {
-            return array();
-        }
-
-        return json_decode($jobLog, true);
-    }
-
-    /**
-     * Delete all completed or failed jobs that are older than $days days
-     *
-     * @param integer $days
-     * @return bool - success
-     */
-    public static function cleanJobs($days)
-    {
-        $seconds = (int)$days * 24 * 60 * 60;
-        $seconds = time() - $seconds;
-
-        QUI::getDataBase()->delete(
-            'queueserver_jobs',
-            array(
-                'lastUpdateTime' => array(
-                    'type'  => '<=',
-                    'value' => $seconds
-                ),
-                'status'         => array(
-                    'type'  => 'IN',
-                    'value' => array(self::JOB_STATUS_FINISHED, self::JOB_STATUS_ERROR)
-                )
             )
         );
     }
