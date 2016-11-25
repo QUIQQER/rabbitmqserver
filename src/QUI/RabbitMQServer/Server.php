@@ -396,39 +396,55 @@ class Server implements IQueueServer
             return self::$Channel;
         }
 
-        self::$Connection = new AMQPStreamConnection(
-            self::getServerSetting('host'),
-            self::getServerSetting('port'),
-            self::getServerSetting('user'),
-            self::getServerSetting('password'),
-            self::getServerSetting('vhost') ?: '/',
-            self::getServerSetting('insist') ? true : false,
-            self::getServerSetting('login_method') ?: 'AMQPLAIN',
-            null,
-            self::getServerSetting('locale') ?: 'en_US',
-            self::getServerSetting('connection_timeout') ?: 3.0,
-            self::getServerSetting('read_write_timeout') ?: 3.0,
-            null,
-            self::getServerSetting('keepalive') ? true : false,
-            self::getServerSetting('heartbeat') ?: 0
-        );
+        try {
+            self::$Connection = new AMQPStreamConnection(
+                self::getServerSetting('host'),
+                self::getServerSetting('port'),
+                self::getServerSetting('user'),
+                self::getServerSetting('password'),
+                self::getServerSetting('vhost') ?: '/',
+                self::getServerSetting('insist') ? true : false,
+                self::getServerSetting('login_method') ?: 'AMQPLAIN',
+                null,
+                self::getServerSetting('locale') ?: 'en_US',
+                self::getServerSetting('connection_timeout') ?: 3.0,
+                self::getServerSetting('read_write_timeout') ?: 3.0,
+                null,
+                self::getServerSetting('keepalive') ? true : false,
+                self::getServerSetting('heartbeat') ?: 0
+            );
 
-        self::$Channel = self::$Connection->channel();
+            self::$Channel = self::$Connection->channel();
 
 //        self::$Channel->exchange_declare('quiqqer_exchange', 'direct', false, true, false);
-        self::$Channel->queue_declare(
-            'quiqqer_queue',
-            false,
-            true,
-            false,
-            false,
-            false,
-            array(
-                'x-max-priority' => array('I', 255)
-            )
-        );
+            self::$Channel->queue_declare(
+                'quiqqer_queue',
+                false,
+                true,
+                false,
+                false,
+                false,
+                array(
+                    'x-max-priority' => array('I', 255)
+                )
+            );
 //        self::$Channel->queue_bind('quiqqer_queue', 'quiqqer_exchange');
 //        self::$Channel->queue_declare('quiqqer', false, true, false, false);
+        } catch (\Exception $Exception) {
+            QUI\System\Log::addError(
+                'Something went wrong while trying to establish a connection to the'
+                . ' RabbitMQ Server :: ' . $Exception->getMessage()
+            );
+
+            throw new QUI\Exception(array(
+                'quiqqer/rabbitmqserver',
+                'exception.server.connection.error',
+                array(
+                    'host' => self::getServerSetting('host'),
+                    'port' => self::getServerSetting('port')
+                )
+            ));
+        }
 
         return self::$Channel;
     }

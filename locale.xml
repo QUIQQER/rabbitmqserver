@@ -78,6 +78,9 @@
         <locale name="server.description">
             <de><![CDATA[Jobs werden mittels RabbiMQ-Server ausgeführt. Setzt voraus, dass ein entsprechendes Server installiert ist und läuft.]]></de>
         </locale>
+        <locale name="exception.server.connection.error">
+            <de><![CDATA[Bei der Verbindung zum RabbitMQ-Server ([host]:[port]) ist ein unerwarteter Fehler aufgetreten. Bitte error.log überprüfen.]]></de>
+        </locale>
 
     </groups>
 

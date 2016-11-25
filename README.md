@@ -22,6 +22,7 @@ Der Paketname ist: quiqqer/rabbitmqserver
 Voraussetzungen
 ---------------
 * RabbitMQ Server (https://www.rabbitmq.com/download.html); aktuelle Version: `3.6.5`
+* Einrichten eines oder mehrerer RabbitMQ Server Benutzer (https://dev.quiqqer.com/quiqqer/rabbitmqserver/wikis/user-config)
 * Konfiguration der RabbitMQ Server Zugangsdaten und Optionen über die QUIQQER Admin-Oberfläche (`Einstellungen -> RabbitMQ-Modul`)
   * Zum Testen der Konfiguration kann das Konsolen-Tool `quiqqer:rabbitmqserver` ausgeführt werden
 * `pcntl`-Erweiterung für PHP (http://php.net/manual/de/book.pcntl.php)
