@@ -14,6 +14,8 @@ $Channel = Server::getChannel();
 $callback = function ($msg) {
     global $Channel;
 
+    $Channel->basic_ack($msg->delivery_info['delivery_tag']);
+
     $job = json_decode($msg->body, true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
@@ -24,8 +26,6 @@ $callback = function ($msg) {
 
         return;
     }
-
-    $deliveryTag = $msg->delivery_info['delivery_tag'];
 
     if (!isset($job['jobId'])
         || !isset($job['jobData'])
@@ -66,8 +66,7 @@ $callback = function ($msg) {
         );
 
         Server::setJobStatus($jobId, Server::JOB_STATUS_ERROR);
-
-        exit;
+        return;
     }
 
     if (isset($job['jobAttributes']['deleteOnFinish'])
@@ -75,8 +74,6 @@ $callback = function ($msg) {
     ) {
         Server::deleteJob($jobId);
     }
-
-    $Channel->basic_ack($deliveryTag);
 };
 
 /**
@@ -104,5 +101,8 @@ $Channel->basic_qos(null, 1, false);
 $Channel->basic_consume('quiqqer_queue', '', false, false, false, false, $callback);
 
 while (count($Channel->callbacks)) {
+    if (is_null($Channel->getConnection())) {
+        $Channel = Server::getChannel();
+    }
     $Channel->wait();
 }
