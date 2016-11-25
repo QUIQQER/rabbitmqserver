@@ -25,6 +25,8 @@ Voraussetzungen
 * Konfiguration der RabbitMQ Server Zugangsdaten und Optionen über die QUIQQER Admin-Oberfläche (`Einstellungen -> RabbitMQ-Modul`)
   * Zum Testen der Konfiguration kann das Konsolen-Tool `quiqqer:rabbitmqserver` ausgeführt werden
 * `pcntl`-Erweiterung für PHP (http://php.net/manual/de/book.pcntl.php)
+* `bcmath`-Erweiterung für PHP (http://php.net/manual/de/book.bc.php)
+* `mbstring`-Erweiterung für PHP (http://php.net/manual/de/book.mbstring.php)
 * Konfiguration und Ausführung des `RabbitConsumerServer`-daemons (s. https://dev.quiqqer.com/quiqqer/rabbitmqserver/wikis/daemon-config)
 
 Mitwirken
