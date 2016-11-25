@@ -69,7 +69,7 @@ class Server implements IQueueServer
 
             $workerData = array(
                 'jobId'         => $jobId,
-                'jobData'       => json_encode($QueueJob->getData()),
+                'jobData'       => $QueueJob->getData(),
                 'jobAttributes' => $QueueJob->getAttributes(),
                 'jobWorker'     => $QueueJob->getWorkerClass()
             );
@@ -93,8 +93,6 @@ class Server implements IQueueServer
                 '',
                 'quiqqer_queue'
             );
-
-            self::close();
         } catch (\Exception $Exception) {
             QUI\System\Log::addError(
                 self::class . ' -> queueJob() :: ' . $Exception->getMessage()
@@ -164,10 +162,6 @@ class Server implements IQueueServer
      */
     public static function setJobResult($jobId, $result)
     {
-        if (empty($result)) {
-            return true;
-        }
-
         $jobStatus = self::getJobStatus($jobId);
 
         switch ($jobStatus) {
@@ -190,6 +184,10 @@ class Server implements IQueueServer
                     )
                 ));
                 break;
+        }
+
+        if (empty($result)) {
+            $result = array();
         }
 
         $result = json_encode($result);
@@ -374,68 +372,17 @@ class Server implements IQueueServer
      */
     public static function cloneJob($jobId, $priority)
     {
-        $jobData = self::getJobData($jobId);
+        $jobData  = self::getJobData($jobId);
+        $CloneJob = new QueueJob(
+            $jobData['jobWorker'],
+            json_decode($jobData['jobData'], true),
+            array(
+                'priority'       => (int)$priority,
+                'deleteOnFinish' => $jobData['deleteOnFinish']
+            )
+        );
 
-        $priority = (int)$priority;
-
-        // max. priority limit for rabbit mq queues
-        // see: https://www.rabbitmq.com/priority.html [14.11.2016]
-        if ($priority > 255) {
-            $priority = 255;
-        }
-
-        $jobData['priority'] = $priority;
-
-        if ($jobData['id']) {
-            unset($jobData['id']);
-        }
-
-        try {
-            QUI::getDataBase()->insert(
-                QUIQServer::getJobTable(),
-                $jobData
-            );
-
-            $Channel  = self::getChannel();
-            $newJobId = QUI::getDataBase()->getPDO()->lastInsertId();
-
-            $workerData = array(
-                'jobId'         => $newJobId,
-                'jobData'       => $jobData['jobData'],
-                'jobAttributes' => array(
-                    'priority'       => $jobData['priority'],
-                    'deleteOnFinish' => $jobData['deleteOnFinish']
-                ),
-                'jobWorker'     => $jobData['jobWorker']
-            );
-
-            $Channel->basic_publish(
-                new AMQPMessage(
-                    json_encode($workerData),
-                    array(
-                        'priority'      => $priority ?: 1,
-                        'delivery_mode' => 2 // make message durable
-                    )
-                ),
-                '',
-                'quiqqer_queue'
-            );
-
-            self::close();
-        } catch (\Exception $Exception) {
-            QUI\System\Log::addError(
-                self::class . ' -> cloneJob() :: ' . $Exception->getMessage()
-            );
-
-            throw new QUI\Exception(array(
-                'quiqqer/rabbitmqserver',
-                'exception.rabbitmqserver.job.clone.error'
-            ));
-        }
-
-        self::setJobStatus($newJobId, self::JOB_STATUS_QUEUED);
-
-        return $newJobId;
+        return $CloneJob->queue();
     }
 
     /**
@@ -504,15 +451,18 @@ class Server implements IQueueServer
     }
 
     /**
-     * Close connection to RabbitMQ server
-     *
-     * @return void
+     * Close server connection
      */
-    public static function close()
+    public static function closeConnection()
     {
-        self::$Channel->close();
-        self::$Connection->close();
+        if (!is_null(self::$Channel)) {
+            self::$Channel->close();
+            self::$Channel = null;
+        }
 
-        self::$Channel = null;
+        if (!is_null(self::$Connection)) {
+            self::$Connection->close();
+            self::$Connection = null;
+        }
     }
 }
