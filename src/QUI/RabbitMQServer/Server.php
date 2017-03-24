@@ -373,11 +373,17 @@ class Server implements IQueueServer
     public static function cloneJob($jobId, $priority)
     {
         $jobData  = self::getJobData($jobId);
+        $priority = (int)$priority;
+
+        if ($priority < 1) {
+            $priority = 1;
+        }
+
         $CloneJob = new QueueJob(
             $jobData['jobWorker'],
             json_decode($jobData['jobData'], true),
             array(
-                'priority'       => (int)$priority,
+                'priority'       => $priority,
                 'deleteOnFinish' => $jobData['deleteOnFinish']
             )
         );
