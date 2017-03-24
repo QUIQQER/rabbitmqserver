@@ -99,7 +99,7 @@ pcntl_signal(SIGHUP, "shutdown");
 //$Channel->queue_declare('quiqqer_queue', false, true, false, false);
 //$Channel->queue_bind('quiqqer_queue', 'quiqqer_exchange');
 $Channel->basic_qos(null, 1, false);
-$Channel->basic_consume('quiqqer_queue', '', false, false, false, false, $callback);
+$Channel->basic_consume(Server::getUniqueQueueName(), '', false, false, false, false, $callback);
 
 while (count($Channel->callbacks)) {
     if (is_null($Channel->getConnection())) {

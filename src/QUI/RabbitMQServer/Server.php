@@ -9,6 +9,7 @@ use QUI;
 use QUI\QueueManager\Interfaces\IQueueServer;
 use QUI\QueueManager\QueueJob;
 use QUI\QueueServer\Server as QUIQServer;
+use QUI\Utils\System\File as FileUtils;
 
 /**
  * Class QueueServer
@@ -91,7 +92,7 @@ class Server implements IQueueServer
                     )
                 ),
                 '',
-                'quiqqer_queue'
+                self::getUniqueQueueName()
             );
         } catch (\Exception $Exception) {
             QUI\System\Log::addError(
@@ -424,7 +425,7 @@ class Server implements IQueueServer
 
 //        self::$Channel->exchange_declare('quiqqer_exchange', 'direct', false, true, false);
             self::$Channel->queue_declare(
-                'quiqqer_queue',
+                self::getUniqueQueueName(),
                 false,
                 true,
                 false,
@@ -486,5 +487,28 @@ class Server implements IQueueServer
             self::$Connection->close();
             self::$Connection = null;
         }
+    }
+
+    /**
+     * Get unique queue name for this quiqqer system
+     *
+     * @return string
+     */
+    public static function getUniqueQueueName()
+    {
+        $varDir        = QUI::getPackage('quiqqer/rabbitmqserver')->getVarDir();
+        $queueNameFile = $varDir . 'queuename';
+        $queueName     = FileUtils::getFileContent($queueNameFile);
+
+        if (!empty($queueName)) {
+            return $queueName;
+        }
+
+        // if queue name has not been generated yet -> generate
+        $queueName = uniqid('quiqqer_queue_', true);
+        FileUtils::mkfile($queueNameFile);
+        file_put_contents($queueNameFile, $queueName);
+
+        return $queueName;
     }
 }
