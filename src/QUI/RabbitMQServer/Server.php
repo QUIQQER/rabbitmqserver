@@ -317,7 +317,7 @@ class Server implements IQueueServer
         );
 
         QUI::getDataBase()->update(
-            'queueserver_jobs',
+            QUI\QueueServer\Server::getJobTable(),
             array(
                 'jobLog' => json_encode($jobLog)
             ),
