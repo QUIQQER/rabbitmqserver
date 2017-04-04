@@ -82,7 +82,7 @@ $callback = function ($msg) {
  *
  * @return void
  */
-function shutdown($sig)
+function shutdown()
 {
     global $Channel;
     $Channel->close();
@@ -103,7 +103,11 @@ $Channel->basic_consume(Server::getUniqueQueueName(), '', false, false, false, f
 
 while (count($Channel->callbacks)) {
     if (is_null($Channel->getConnection())) {
-        $Channel = Server::getChannel();
+        try {
+            $Channel = Server::getChannel();
+        } catch (\Exception $Exception) {
+            shutdown();
+        }
     }
     $Channel->wait();
 }
