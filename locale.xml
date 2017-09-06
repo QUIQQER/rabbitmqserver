@@ -7,7 +7,15 @@
     </groups>
 
     <groups name="quiqqer/rabbitmqserver" datatype="php,js">
-
+        <!-- title & description -->
+        <locale name="package.title">
+            <de><![CDATA[QUIQQER - RabbitMQ-Modul]]></de>
+            <en><![CDATA[QUIQQER - RabbitMQ-Modul]]></en>
+        </locale>
+        <locale name="package.description">
+            <de><![CDATA[RabbitMQ Quiqqer-Modul zur Verwendung der RabbitMQ-Nachrichtenwarteschlange mit dem QUIQQER Queuemanager]]></de>
+            <en><![CDATA[RabbitMQ Quiqqer Module to use RabbitMQ message queue with the quiqqer queue manager]]></en>
+        </locale>
         <!-- Settings -->
         <locale name="settings.title">
             <de><![CDATA[RabbitMQ-Modul]]></de>
