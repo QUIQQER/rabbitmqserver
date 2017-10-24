@@ -105,6 +105,8 @@ while (count($Channel->callbacks)) {
     if (is_null($Channel->getConnection())) {
         try {
             $Channel = Server::getChannel();
+            $Channel->basic_qos(null, 1, false);
+            $Channel->basic_consume(Server::getUniqueQueueName(), '', false, false, false, false, $callback);
         } catch (\Exception $Exception) {
             shutdown();
         }
