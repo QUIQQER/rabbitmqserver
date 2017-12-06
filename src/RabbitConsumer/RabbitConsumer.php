@@ -9,11 +9,39 @@ use QUI\RabbitMQServer\Server;
 // run as daemon (forever)
 set_time_limit(0);
 
-$Channel = Server::getChannel();
+$Channel       = Server::getChannel();
+$CurrentWorker = null;
+
+$errorHandler = function () {
+    global $CurrentWorker;
+
+    $error = error_get_last();
+
+    switch ($error['type']) {
+        // FATAL ERROR
+        case E_ERROR:
+            break;
+
+        default:
+            return;
+    }
+
+    if (empty($CurrentWorker)) {
+        return;
+    }
+
+    // re-queue Job on fatal error
+
+    /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
+    $CurrentWorker->cloneJob($CurrentWorker);
+};
+
+register_shutdown_function($errorHandler);
 
 // execute job
 $callback = function ($msg) {
     global $Channel;
+    global $CurrentWorker;
 
     $Channel->basic_ack($msg->delivery_info['delivery_tag']);
 
@@ -25,6 +53,7 @@ $callback = function ($msg) {
             . json_last_error_msg() . ' [code: ' . json_last_error() . ']. Abort process.'
         );
 
+        $CurrentWorker = null;
         return;
     }
 
@@ -37,6 +66,7 @@ $callback = function ($msg) {
             'RabbitConsumer.php :: job information array missing keys. Abort process.'
         );
 
+        $CurrentWorker = null;
         return;
     }
 
@@ -46,13 +76,15 @@ $callback = function ($msg) {
         $workerClass = $job['jobWorker'];
 
         /** @var \QUI\QueueManager\QueueWorker $Worker */
-        $Worker = new $workerClass($jobId, $jobData);
+        $Worker        = new $workerClass($jobId, $jobData);
+        $CurrentWorker = $Worker;
     } catch (\Exception $Exception) {
         QUI\System\Log::addError(
             'RabbitConsumer.php :: Error while initializing Worker class (' . $job['jobWorker'] . ') -> '
             . $Exception->getMessage() . '. Abort process.'
         );
 
+        $CurrentWorker = null;
         return;
     }
 
@@ -67,6 +99,8 @@ $callback = function ($msg) {
         );
 
         Server::setJobStatus($jobId, Server::JOB_STATUS_ERROR);
+
+        $CurrentWorker = null;
         return;
     }
 
@@ -75,6 +109,8 @@ $callback = function ($msg) {
     ) {
         Server::deleteJob($jobId);
     }
+
+    $CurrentWorker = null;
 };
 
 /**
@@ -90,7 +126,7 @@ function shutdown()
     exit;
 }
 
-declare(ticks = 1);
+declare(ticks=1);
 
 pcntl_signal(SIGINT, "shutdown");
 pcntl_signal(SIGTERM, "shutdown");
