@@ -59,8 +59,8 @@ class JobChecker
             'select' => 'id',
             'from'   => QUI::getDBTableName('queueserver_jobs'),
             'where'  => array(
-                'status'     => Server::JOB_STATUS_RUNNING,
-                'createTime' => array(
+                'status'         => Server::JOB_STATUS_RUNNING,
+                'lastUpdateTime' => array(
                     'type'  => '<',
                     'value' => $TimeExec->getTimestamp()
                 )
