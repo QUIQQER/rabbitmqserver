@@ -53,6 +53,16 @@
                     <defaultvalue>1</defaultvalue>
                 </conf>
             </section>
+            <section name="jobchecker">
+                <conf name="max_time_wait">
+                    <type><![CDATA[integer]]></type>
+                    <defaultvalue>30</defaultvalue>
+                </conf>
+                <conf name="max_time_execute">
+                    <type><![CDATA[integer]]></type>
+                    <defaultvalue>300</defaultvalue>
+                </conf>
+            </section>
         </config>
 
         <window name="rabbitmqserversettings">
@@ -148,6 +158,7 @@
                             </text>
                         </input>
                     </settings>
+
                     <settings title="consumer" name="consumer">
                         <title>
                             <locale group="quiqqer/rabbitmqserver" var="settings.rabbitmqserver.consumer.title"/>
@@ -164,6 +175,43 @@
                             </description>
                         </input>
                     </settings>
+
+                </category>
+
+                <category name="jobchecker" index="1">
+                    <text>
+                        <locale group="quiqqer/rabbitmqserver" var="settings.category.jobchecker.title"/>
+                    </text>
+                    <icon>fa fa-search</icon>
+
+                    <settings title="jobchecker" name="jobchecker">
+                        <title>
+                            <locale group="quiqqer/rabbitmqserver" var="settings.rabbitmqserver.jobchecker.title"/>
+                        </title>
+
+                        <input conf="jobchecker.max_time_wait" type="number" min="1">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.jobchecker.settings.max_time_wait.title"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.jobchecker.settings.max_time_wait.description"/>
+                            </description>
+                        </input>
+
+                        <input conf="jobchecker.max_time_execute" type="number" min="1">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.jobchecker.settings.max_time_execute.title"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.jobchecker.settings.max_time_execute.description"/>
+                            </description>
+                        </input>
+                    </settings>
+
                 </category>
 
             </categories>

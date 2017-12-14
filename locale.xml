@@ -24,7 +24,7 @@
             <de><![CDATA[Server]]></de>
         </locale>
 
-
+        <!-- Settings: server -->
         <locale name="settings.rabbitmqserver.server.title">
             <de><![CDATA[RabbitMQ Server-Einstellungen]]></de>
         </locale>
@@ -65,7 +65,7 @@
             <de><![CDATA[heartbeat]]></de>
         </locale>
 
-
+        <!-- Settings: consumer -->
         <locale name="settings.rabbitmqserver.consumer.title">
             <de><![CDATA[RabbitMQ Consumer]]></de>
         </locale>
@@ -74,6 +74,34 @@
         </locale>
         <locale name="settings.rabbitmqserver.consumer.settings.consumer_count.description">
             <de><![CDATA[Bestimmt die Anzahl an Consumern, die parallel laufen und Jobs bearbeiten.]]></de>
+        </locale>
+
+        <!-- Settings: jobchecker -->
+        <locale name="settings.category.jobchecker.title">
+            <de><![CDATA[Job-Checker]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.jobchecker.title">
+            <de><![CDATA[Job-Checker]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_wait.title">
+            <de><![CDATA[Maximale Zeit für unbearbeitete Jobs (Sekunden)]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_wait.description">
+            <de><![CDATA[Maximale Zeit <b>in Sekunden</b>, die ein Job in der Warteschlange stehen darf, bevor er als auffällig gilt.]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_execute.title">
+            <de><![CDATA[Maximale Zeit für ausgeführte Jobs (Sekunden)]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_execute.description">
+            <de><![CDATA[Maximale Zeit <b>in Sekunden</b>, die ein Job sich in Ausführung befinden darf, bevor er als auffällig gilt.]]></de>
+        </locale>
+
+        <!-- cron.xml -->
+        <locale name="cron.checkJobs.title">
+            <de><![CDATA[RabbitMQ - JobChecker]]></de>
+        </locale>
+        <locale name="cron.checkJobs.description">
+            <de><![CDATA[Prüft, ob sich Queue-Jobs zu lange in der Warteschlange oder in Ausführung befinden und sendet eine E-Mail an den Administrator.]]></de>
         </locale>
 
     </groups>
@@ -88,6 +116,19 @@
         </locale>
         <locale name="exception.server.connection.error">
             <de><![CDATA[Bei der Verbindung zum RabbitMQ-Server ([host]:[port]) ist ein unerwarteter Fehler aufgetreten. Bitte error.log überprüfen.]]></de>
+        </locale>
+
+        <!-- JobChecker -->
+        <locale name="jobchecker.mail.content" html="true">
+            <de><![CDATA[<h1>JobChecker - Ergebnisse</h1>
+<ul>
+    <li>Anzahl Jobs, die länger als <b>[maxTimeWait] Sekunden</b> in der Warteschlange waren: <b>[wait]</b></li>
+    <li>IDs: [waitIds]</li>
+</ul>
+<ul>
+    <li>Anzahl Jobs, die länger als <b>[maxTimeExecute] Sekunden</b> in Ausführung waren: <b>[execute]</b></li>
+    <li>IDs: [executeIds]</li>
+</ul>]]></de>
         </locale>
 
     </groups>
