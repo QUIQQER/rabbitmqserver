@@ -33,6 +33,7 @@ $errorHandler = function () {
     // re-queue Job on fatal error
 
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
+    sleep(1);
     $CurrentWorker->cloneJob($CurrentWorker);
 };
 
