@@ -35,6 +35,10 @@ $errorHandler = function () {
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     sleep(1);
     $CurrentWorker->cloneJob($CurrentWorker);
+
+    QUI\System\Log::addDebug(
+        'Cloned Job "' . $CurrentWorker::getClass() . '" because of error.'
+    );
 };
 
 register_shutdown_function($errorHandler);
@@ -63,6 +67,10 @@ $callback = function ($msg) {
         || !isset($job['jobWorker'])
         || !isset($job['jobAttributes'])
     ) {
+        if (!empty($job['jobId'])) {
+            Server::setJobStatus($job['jobId'], Server::JOB_STATUS_ERROR);
+        }
+
         QUI\System\Log::addError(
             'RabbitConsumer.php :: job information array missing keys. Abort process.'
         );
