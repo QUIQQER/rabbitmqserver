@@ -37,7 +37,7 @@ $errorHandler = function () {
     $CurrentWorker->cloneJob($CurrentWorker);
 
     QUI\System\Log::addDebug(
-        'Cloned Job "' . $CurrentWorker::getClass() . '" because of error.'
+        'Cloning Job "' . $CurrentWorker::getClass() . '" because of error -> ' . $error['message']
     );
 };
 
