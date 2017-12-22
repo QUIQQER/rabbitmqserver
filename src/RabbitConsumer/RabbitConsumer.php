@@ -17,27 +17,17 @@ $errorHandler = function () {
 
     $error = error_get_last();
 
-    switch ($error['type']) {
-        // FATAL ERROR
-        case E_ERROR:
-            break;
-
-        default:
-            return;
-    }
-
     if (empty($CurrentWorker)) {
         return;
     }
 
-    // re-queue Job on fatal error
-
+    // re-queue Job on error
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     sleep(1);
     $CurrentWorker->cloneJob($CurrentWorker);
 
     QUI\System\Log::addDebug(
-        'Cloning Job "' . $CurrentWorker::getClass() . '" because of error -> ' . $error['message']
+        'Cloning Job "' . $CurrentWorker::getClass() . '" because of error -> ' . $error['type'] . ": " . $error['message']
     );
 };
 
