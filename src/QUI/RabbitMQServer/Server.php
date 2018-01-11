@@ -72,7 +72,8 @@ class Server implements IQueueServer
                 'jobId'         => $jobId,
                 'jobData'       => $QueueJob->getData(),
                 'jobAttributes' => $QueueJob->getAttributes(),
-                'jobWorker'     => $QueueJob->getWorkerClass()
+                'jobWorker'     => $QueueJob->getWorkerClass(),
+                'priority'      => $QueueJob->getAttribute('priority') ?: 1
             );
 
             $priority = (int)$QueueJob->getAttribute('priority');

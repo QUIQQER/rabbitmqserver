@@ -75,6 +75,18 @@
         <locale name="settings.rabbitmqserver.consumer.settings.consumer_count.description">
             <de><![CDATA[Bestimmt die Anzahl an Consumern, die parallel laufen und Jobs bearbeiten.]]></de>
         </locale>
+        <locale name="settings.rabbitmqserver.consumer.settings.high_priority_consumer_count.title">
+            <de><![CDATA[Anzahl High-Priority Consumer]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.consumer.settings.high_priority_consumer_count.description">
+            <de><![CDATA[Bestimmt den Anteil an Consumern (von der Gesamtzahl der Consumer), die ausschließlich High-Priority Jobs bearbeiten.]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.consumer.settings.high_priority_threshold.title">
+            <de><![CDATA[High-Priority-Schwelle]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.consumer.settings.high_priority_threshold.description">
+            <de><![CDATA[Prioritäts-Wert, ab dem Jobs als "High-Priority"-Jobs gelten.]]></de>
+        </locale>
 
         <!-- Settings: jobchecker -->
         <locale name="settings.category.jobchecker.title">

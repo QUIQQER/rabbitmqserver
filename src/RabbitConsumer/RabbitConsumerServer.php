@@ -31,14 +31,22 @@ function getConsumerSetting($key)
 /**
  * Starts a single RabbitConsumer.php process
  *
+ * @param bool $highPriority (optional) - Start a high priority Consumer [default: false]
  * @return void
  */
-function startNewRabbitConsumer()
+function startNewRabbitConsumer($highPriority = false)
 {
     global $consumerProcesses;
 
+    $consumerCmd = 'php ' . dirname(__FILE__) . '/RabbitConsumer.php';
+
+    if ($highPriority) {
+        $highPriorityThreshold = (int)getConsumerSetting('high_priority_threshold');
+        $consumerCmd .= ' ' . $highPriorityThreshold;
+    }
+
     $process = proc_open(
-        'php ' . dirname(__FILE__) . '/RabbitConsumer.php',
+        $consumerCmd,
         array(),
         $pipes
     );
@@ -67,7 +75,10 @@ function startNewRabbitConsumer()
     }
 
     $pid                     = (int)$processInfo['pid'];
-    $consumerProcesses[$pid] = $process;
+    $consumerProcesses[$pid] = array(
+        'process'      => $process,
+        'highPriority' => $highPriority
+    );
 
     echo "\nStarted new RabbitConsumer.php process (pid: " . $pid . ')';
 }
@@ -79,14 +90,29 @@ function startNewRabbitConsumer()
  */
 function startRabbitConsumers()
 {
-    $consumerCount = (int)getConsumerSetting('consumer_count');
+    $consumerCount             = (int)getConsumerSetting('consumer_count');
+    $highPriorityConsumerCount = (int)getConsumerSetting('high_priority_consumer_count');
 
     if ($consumerCount < 1) {
         $consumerCount = 1;
     }
 
+    if ($highPriorityConsumerCount < 1) {
+        $highPriorityConsumerCount = 0;
+    } elseif ($highPriorityConsumerCount > $consumerCount) {
+        $highPriorityConsumerCount = $consumerCount;
+    }
+
+    $consumerCount -= $highPriorityConsumerCount;
+
+    // start regular consumers
     for ($i = 0; $i < $consumerCount; $i++) {
         startNewRabbitConsumer();
+    }
+
+    // start high priority consumers
+    for ($i = 0; $i < $highPriorityConsumerCount; $i++) {
+        startNewRabbitConsumer(true);
     }
 }
 
@@ -99,8 +125,9 @@ function stopRabbitConsumers($sig)
 {
     global $consumerProcesses;
 
-    foreach ($consumerProcesses as $pid => $process) {
-        $status = proc_get_status($process);
+    foreach ($consumerProcesses as $pid => $data) {
+        $process = $data['process'];
+        $status  = proc_get_status($process);
 
         if (!$status
             || !$status['running']
@@ -116,7 +143,7 @@ function stopRabbitConsumers($sig)
                 posix_kill($childPid, SIGINT);
             } catch (\Exception $Exception) {
                 echo "An error occurred while trying to send INT signal to php process (pid: " . $childPid . ")."
-                    . " Please kill manually.";
+                     . " Please kill manually.";
             }
         }
 
@@ -133,7 +160,7 @@ function getServerSetting($key)
     return QUI::getPackage('quiqqer/rabbitmqserver')->getConfig()->get('server', $key);
 }
 
-declare(ticks = 1);
+declare(ticks=1);
 
 pcntl_signal(SIGINT, "stopRabbitConsumers");
 pcntl_signal(SIGTERM, "stopRabbitConsumers");
@@ -144,8 +171,9 @@ startRabbitConsumers();
 while (!empty($consumerProcesses)) {
     sleep(10);
 
-    foreach ($consumerProcesses as $pid => $process) {
-        $status = proc_get_status($process);
+    foreach ($consumerProcesses as $pid => $data) {
+        $process = $data['process'];
+        $status  = proc_get_status($process);
 
         if ($status
             && $status['running']
@@ -154,10 +182,10 @@ while (!empty($consumerProcesses)) {
         }
 
         echo 'RabbitConsumer.php process (pid: ' . $pid . ') seems to have exited on its own. Removing from list.'
-            . ' Starting replacement process.';
+             . ' Starting replacement process.';
 
         unset($consumerProcesses[$pid]);
 
-        startNewRabbitConsumer();
+        startNewRabbitConsumer($data['highPriority']);
     }
 }

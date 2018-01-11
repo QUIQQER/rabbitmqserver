@@ -52,6 +52,14 @@
                     <type><![CDATA[integer]]></type>
                     <defaultvalue>1</defaultvalue>
                 </conf>
+                <conf name="high_priority_consumer_count">
+                    <type><![CDATA[integer]]></type>
+                    <defaultvalue>0</defaultvalue>
+                </conf>
+                <conf name="high_priority_threshold">
+                    <type><![CDATA[integer]]></type>
+                    <defaultvalue>10</defaultvalue>
+                </conf>
             </section>
             <section name="jobchecker">
                 <conf name="max_time_wait">
@@ -174,6 +182,29 @@
                                         var="settings.rabbitmqserver.consumer.settings.consumer_count.description"/>
                             </description>
                         </input>
+
+                        <input conf="consumer.high_priority_consumer_count">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.consumer.settings.high_priority_consumer_count.title"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.consumer.settings.high_priority_consumer_count.description"/>
+                            </description>
+                        </input>
+
+                        <input conf="consumer.high_priority_threshold">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.consumer.settings.high_priority_threshold.title"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.consumer.settings.high_priority_threshold.description"/>
+                            </description>
+                        </input>
+
                     </settings>
 
                 </category>

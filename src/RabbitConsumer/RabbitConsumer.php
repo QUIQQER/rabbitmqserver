@@ -11,6 +11,11 @@ set_time_limit(0);
 
 $Channel       = Server::getChannel();
 $CurrentWorker = null;
+$minPriority   = false;
+
+if (!empty($argv[1])) {
+    $minPriority = (int)$argv[1];
+}
 
 $errorHandler = function () {
     global $CurrentWorker;
@@ -24,7 +29,7 @@ $errorHandler = function () {
     // re-queue Job on error
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     sleep(1);
-    $CurrentWorker->cloneJob($CurrentWorker);
+    $CurrentWorker->cloneJob();
 
     QUI\System\Log::addDebug(
         'Cloning Job "' . $CurrentWorker::getClass() . '" because of error -> ' . $error['type'] . ": " . $error['message']
@@ -37,8 +42,7 @@ register_shutdown_function($errorHandler);
 $callback = function ($msg) {
     global $Channel;
     global $CurrentWorker;
-
-    $Channel->basic_ack($msg->delivery_info['delivery_tag']);
+    global $minPriority;
 
     $job = json_decode($msg->body, true);
 
@@ -49,7 +53,21 @@ $callback = function ($msg) {
         );
 
         $CurrentWorker = null;
+        $Channel->basic_ack($msg->delivery_info['delivery_tag']);
         return;
+    }
+
+    $priority = 1;
+
+    if (!empty($job['priority'])) {
+        $priority = (int)$job['priority'];
+    }
+
+    if ($minPriority && $priority < $minPriority) {
+        $Channel->basic_reject($msg->delivery_info['delivery_tag'], true);
+        return;
+    } else {
+        $Channel->basic_ack($msg->delivery_info['delivery_tag']);
     }
 
     if (!isset($job['jobId'])
