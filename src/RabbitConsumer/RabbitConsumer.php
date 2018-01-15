@@ -9,16 +9,30 @@ use QUI\RabbitMQServer\Server;
 // run as daemon (forever)
 set_time_limit(0);
 
-$Channel       = Server::getChannel();
-$CurrentWorker = null;
-$minPriority   = false;
+try {
+    $Channel = Server::getChannel();
+} catch (\Exception $Exception) {
+    QUI\System\Log::writeException($Exception);
+    shutdown();
+}
+
+$CurrentWorker   = null;
+$currentPriority = 1;
+$minPriority     = 1;
 
 if (!empty($argv[1])) {
     $minPriority = (int)$argv[1];
 }
 
+if ($minPriority < 1) {
+    $minPriority = 1;
+} elseif ($minPriority > 255) {
+    $minPriority = 255;
+}
+
 $errorHandler = function () {
     global $CurrentWorker;
+    global $currentPriority;
 
     $error = error_get_last();
 
@@ -29,7 +43,7 @@ $errorHandler = function () {
     // re-queue Job on error
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     sleep(1);
-    $CurrentWorker->cloneJob();
+    $CurrentWorker->cloneJob($currentPriority);
 
     QUI\System\Log::addDebug(
         'Cloning Job "' . $CurrentWorker::getClass() . '" because of error -> ' . $error['type'] . ": " . $error['message']
@@ -43,6 +57,7 @@ $callback = function ($msg) {
     global $Channel;
     global $CurrentWorker;
     global $minPriority;
+    global $currentPriority;
 
     $job = json_decode($msg->body, true);
 
@@ -63,12 +78,14 @@ $callback = function ($msg) {
         $priority = (int)$job['priority'];
     }
 
-    if ($minPriority && $priority < $minPriority) {
+    if ($priority < $minPriority) {
         $Channel->basic_reject($msg->delivery_info['delivery_tag'], true);
         return;
     } else {
         $Channel->basic_ack($msg->delivery_info['delivery_tag']);
     }
+
+    $currentPriority = $priority;
 
     if (!isset($job['jobId'])
         || !isset($job['jobData'])
@@ -161,6 +178,7 @@ while (count($Channel->callbacks)) {
             $Channel->basic_qos(null, 1, false);
             $Channel->basic_consume(Server::getUniqueQueueName(), '', false, false, false, false, $callback);
         } catch (\Exception $Exception) {
+            QUI\System\Log::writeException($Exception);
             shutdown();
         }
     }
