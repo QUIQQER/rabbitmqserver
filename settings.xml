@@ -70,6 +70,10 @@
                     <type><![CDATA[integer]]></type>
                     <defaultvalue>300</defaultvalue>
                 </conf>
+                <conf name="critical_memory_threshold">
+                    <type><![CDATA[integer]]></type>
+                    <defaultvalue>230</defaultvalue>
+                </conf>
             </section>
         </config>
 
@@ -241,6 +245,18 @@
                                         var="settings.rabbitmqserver.jobchecker.settings.max_time_execute.description"/>
                             </description>
                         </input>
+
+                        <input conf="jobchecker.critical_memory_threshold" type="number" min="1">
+                            <text>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.jobchecker.settings.critical_memory_threshold.title"/>
+                            </text>
+                            <description>
+                                <locale group="quiqqer/rabbitmqserver"
+                                        var="settings.rabbitmqserver.jobchecker.settings.critical_memory_threshold.description"/>
+                            </description>
+                        </input>
+
                     </settings>
 
                 </category>
