@@ -107,6 +107,12 @@
         <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_execute.description">
             <de><![CDATA[Maximale Zeit <b>in Sekunden</b>, die ein Job sich in Ausführung befinden darf, bevor er als auffällig gilt.]]></de>
         </locale>
+        <locale name="settings.rabbitmqserver.jobchecker.settings.critical_memory_threshold.title">
+            <de><![CDATA[Kritische memory_usage Schwelle (MB)]]></de>
+        </locale>
+        <locale name="settings.rabbitmqserver.jobchecker.settings.critical_memory_threshold.description" html="true">
+            <de><![CDATA[Maximale Höhe der <b>peak memory usage</b> (MB). Wird diese Grenze durch einen RabbitConsumer überschritten, wird eine Warn E-Mail an den System-Administrator versendet.]]></de>
+        </locale>
 
         <!-- cron.xml -->
         <locale name="cron.checkJobs.title">
@@ -141,6 +147,15 @@
     <li>Anzahl Jobs, die länger als <b>[maxTimeExecute] Sekunden</b> in Ausführung waren: <b>[execute]</b></li>
     <li>IDs: [executeIds]</li>
 </ul>]]></de>
+        </locale>
+        <locale name="jobchecker.mail.memory_warning.content" html="true">
+            <de><![CDATA[<h1>JobChecker - Memory usage Warnung!</h1>
+<p>
+Es wurde eine peak memory usage von <b>[peakUsage]</b> MB gemessen. Vor dem Peak ausgeführter Worker: <b>[workerClass]</b>
+</p>
+<p>
+[workerData]
+<p>]]></de>
         </locale>
 
     </groups>

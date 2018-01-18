@@ -12,6 +12,13 @@ use QUI;
 class JobChecker
 {
     /**
+     * Max detected memory usage for this runtime
+     *
+     * @var int
+     */
+    protected static $maxPeak = 0;
+
+    /**
      * Checks Queue Jobs that are too long in queue or execution
      *
      * @return void
@@ -74,7 +81,7 @@ class JobChecker
         }
 
         if (!empty($statistics['wait']) || !empty($statistics['execute'])) {
-            self::sendMail($statistics);
+            self::sendStatisticsMail($statistics);
         }
     }
 
@@ -84,7 +91,7 @@ class JobChecker
      * @param array $statistics
      * @return void
      */
-    protected static function sendMail($statistics)
+    protected static function sendStatisticsMail($statistics)
     {
         $adminMail = QUI::conf('mail', 'admin_mail');
 
@@ -111,6 +118,61 @@ class JobChecker
         ));
 
         $Mailer->setSubject('quiqqqer/rabbitmqserver - JobChecker');
+        $Mailer->addRecipient($adminMail);
+
+        try {
+            $Mailer->send();
+        } catch (\Exception $Exception) {
+            QUI\System\Log::addError($Exception->getMessage());
+        }
+    }
+
+    /**
+     * Checks current PHP memory usage
+     *
+     * @param array $workerData - Class of the last Worker that was executed
+     * @return void
+     */
+    public static function checkMemoryUsage($workerData)
+    {
+        $Conf              = QUI::getPackage('quiqqer/rabbitmqserver')->getConfig();
+        $memoryThreshold   = (int)$Conf->get('jobchecker', 'critical_memory_threshold');
+        $peakUsageMegaByte = (memory_get_peak_usage(true) / 1024) / 1024;
+
+        if ($peakUsageMegaByte > $memoryThreshold && $peakUsageMegaByte > self::$maxPeak) {
+            self::sendMemoryWarningMail($peakUsageMegaByte, $workerData);
+            self::$maxPeak = $peakUsageMegaByte;
+        }
+    }
+
+    /**
+     * Send memory usage warning mail
+     *
+     * @param int $peakUsage - Peak memory usage (MB)
+     * @param array $workerData - Class of the last Worker that was executed
+     * @return void
+     */
+    protected static function sendMemoryWarningMail($peakUsage, $workerData)
+    {
+        $adminMail = QUI::conf('mail', 'admin_mail');
+
+        if (empty($adminMail)) {
+            return;
+        }
+
+        $Mailer = new \QUI\Mail\Mailer();
+
+        $Mailer->setBody(QUI::getLocale()->get(
+            'quiqqer/rabbitmqserver',
+            'jobchecker.mail.memory_warning.content',
+            array(
+                'peakUsage'   => $peakUsage,
+                'workerClass' => $workerData['jobWorker'],
+                'workerData'  => json_encode($workerData['jobData'])
+            )
+        ));
+
+        $Mailer->setSubject('quiqqqer/rabbitmqserver - Memory usage Warnung');
         $Mailer->addRecipient($adminMail);
 
         try {

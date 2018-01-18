@@ -5,6 +5,7 @@ define('QUIQQER_CONSOLE', true);
 require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/header.php';
 
 use QUI\RabbitMQServer\Server;
+use QUI\RabbitMQServer\JobChecker;
 
 // run as daemon (forever)
 set_time_limit(0);
@@ -103,6 +104,9 @@ $callback = function ($msg) {
         $CurrentWorker = null;
         return;
     }
+
+    // check memory usage
+    JobChecker::checkMemoryUsage($job);
 
     try {
         $jobId       = $job['jobId'];
