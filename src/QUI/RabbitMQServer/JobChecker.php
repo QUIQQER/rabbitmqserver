@@ -105,6 +105,8 @@ class JobChecker
         $statistics['waitIds']    = implode(', ', $statistics['waitIds']);
         $statistics['executeIds'] = implode(', ', $statistics['executeIds']);
 
+        QUI::getLocale()->setCurrent(QUI::conf('globals', 'standardLanguage'));
+
         $Mailer->setBody(QUI::getLocale()->get(
             'quiqqer/rabbitmqserver',
             'jobchecker.mail.content',
@@ -161,6 +163,8 @@ class JobChecker
         }
 
         $Mailer = new \QUI\Mail\Mailer();
+
+        QUI::getLocale()->setCurrent(QUI::conf('globals', 'standardLanguage'));
 
         $Mailer->setBody(QUI::getLocale()->get(
             'quiqqer/rabbitmqserver',
