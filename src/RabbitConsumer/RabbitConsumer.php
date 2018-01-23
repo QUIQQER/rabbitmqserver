@@ -31,20 +31,49 @@ if ($minPriority < 1) {
     $minPriority = 255;
 }
 
-$errorHandler = function () {
+/**
+ * Requeue current Job
+ */
+function requeue()
+{
     global $CurrentWorker;
     global $currentPriority;
 
-    $error = error_get_last();
-
+    /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     if (empty($CurrentWorker)) {
         return;
     }
 
-    // re-queue Job on error
-    /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     sleep(1);
     $CurrentWorker->cloneJob($currentPriority);
+}
+
+/**
+ * Checks if an exception is a Database Exception
+ *
+ * @param Exception $Exception
+ * @return bool
+ */
+function isDBException(\Exception $Exception)
+{
+    if (mb_strpos($Exception->getMessage(), 'Error while sending QUERY packet') !== false) {
+        return true;
+    }
+
+    return false;
+}
+
+$errorHandler = function () {
+    global $CurrentWorker;
+
+    /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
+    if (empty($CurrentWorker)) {
+        return;
+    }
+
+    $error = error_get_last();
+
+    requeue();
 
     QUI\System\Log::addDebug(
         'Cloning Job "' . $CurrentWorker::getClass() . '" because of error -> ' . $error['type'] . ": " . $error['message']
@@ -117,8 +146,13 @@ $callback = function ($msg) {
         $Worker        = new $workerClass($jobId, $jobData);
         $CurrentWorker = $Worker;
     } catch (\Exception $Exception) {
+        if (isDBException($Exception)) {
+            requeue();
+            return;
+        }
+
         QUI\System\Log::addError(
-            'RabbitConsumer.php :: Error while initializing Worker class (' . $job['jobWorker'] . ') -> '
+            'RabbitConsumer.php (Job #' . $jobId . ') :: Error while initializing Worker class (' . $job['jobWorker'] . ') -> '
             . $Exception->getMessage() . '. Abort process.'
         );
 
@@ -131,8 +165,13 @@ $callback = function ($msg) {
         Server::setJobResult($jobId, $Worker->execute());
         Server::setJobStatus($jobId, Server::JOB_STATUS_FINISHED);
     } catch (\Exception $Exception) {
+        if (isDBException($Exception)) {
+            requeue();
+            return;
+        }
+
         QUI\System\Log::addError(
-            'RabbitConsumer.php :: Error while executing Worker (' . $job['jobWorker'] . ') -> '
+            'RabbitConsumer.php (Job #' . $jobId . ') :: Error while executing Worker (' . $job['jobWorker'] . ') -> '
             . $Exception->getMessage() . '. Abort process.'
         );
 
@@ -145,7 +184,21 @@ $callback = function ($msg) {
     if (isset($job['jobAttributes']['deleteOnFinish'])
         && $job['jobAttributes']['deleteOnFinish']
     ) {
-        Server::deleteJob($jobId);
+        try {
+            Server::deleteJob($jobId);
+        } catch (\Exception $Exception) {
+            if (isDBException($Exception)) {
+                requeue();
+                return;
+            }
+
+            QUI\System\Log::addError(
+                'RabbitConsumer.php (Job #' . $jobId . ') :: Error while deleteting Job -> '
+                . $Exception->getMessage() . '. Abort process.'
+            );
+
+            Server::setJobStatus($jobId, Server::JOB_STATUS_ERROR);
+        }
     }
 
     $CurrentWorker = null;
