@@ -19,6 +19,7 @@ try {
 
 $CurrentWorker   = null;
 $currentPriority = 1;
+$currentJobId    = 0;
 $minPriority     = 1;
 
 if (!empty($argv[1])) {
@@ -38,6 +39,7 @@ function requeue()
 {
     global $CurrentWorker;
     global $currentPriority;
+    global $currentJobId;
 
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     if (empty($CurrentWorker)) {
@@ -46,6 +48,10 @@ function requeue()
 
     sleep(1);
     $CurrentWorker->cloneJob($currentPriority);
+
+    QUI\System\Log::addInfo(
+        'Re-queueing Job #' . $currentJobId . ' ("' . $CurrentWorker::getClass() . '")'
+    );
 }
 
 /**
@@ -138,9 +144,10 @@ $callback = function ($msg) {
     JobChecker::checkMemoryUsage($job);
 
     try {
-        $jobId       = $job['jobId'];
-        $jobData     = $job['jobData'];
-        $workerClass = $job['jobWorker'];
+        $jobId        = $job['jobId'];
+        $currentJobId = $jobId;
+        $jobData      = $job['jobData'];
+        $workerClass  = $job['jobWorker'];
 
         /** @var \QUI\QueueManager\QueueWorker $Worker */
         $Worker        = new $workerClass($jobId, $jobData);
