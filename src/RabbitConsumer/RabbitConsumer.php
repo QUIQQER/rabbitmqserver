@@ -94,6 +94,7 @@ $callback = function ($msg) {
     global $CurrentWorker;
     global $minPriority;
     global $currentPriority;
+    global $currentJobId;
 
     $job = json_decode($msg->body, true);
 
