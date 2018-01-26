@@ -2,7 +2,7 @@
   "name": "quiqqer/rabbitmqserver",
   "type": "quiqqer-module",
   "description": "RabbitMQ Quiqqer Module to use RabbitMQ message queue with the quiqqer queue manager",
-  "version": "dev-master",
+  "version": "dev-dev",
   "license": "GPL-3.0+",
   "authors": [
     {
@@ -17,7 +17,7 @@
     "url": "http://www.pcsg.de"
   },
   "require": {
-    "quiqqer/queuemanager": "dev-master",
+    "quiqqer/queuemanager": "dev-master|dev-dev",
     "php-amqplib/php-amqplib": "2.6.*"
   },
   "autoload": {
