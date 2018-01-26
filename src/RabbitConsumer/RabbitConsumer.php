@@ -164,6 +164,8 @@ $callback = function ($msg) {
             . $Exception->getMessage() . '. Abort process.'
         );
 
+        QUI\System\Log::writeException($Exception);
+
         $CurrentWorker = null;
         return;
     }
@@ -182,6 +184,8 @@ $callback = function ($msg) {
             'RabbitConsumer.php (Job #' . $jobId . ') :: Error while executing Worker (' . $job['jobWorker'] . ') -> '
             . $Exception->getMessage() . '. Abort process.'
         );
+
+        QUI\System\Log::writeException($Exception);
 
         Server::setJobStatus($jobId, Server::JOB_STATUS_ERROR);
 
@@ -204,6 +208,8 @@ $callback = function ($msg) {
                 'RabbitConsumer.php (Job #' . $jobId . ') :: Error while deleteting Job -> '
                 . $Exception->getMessage() . '. Abort process.'
             );
+
+            QUI\System\Log::writeException($Exception);
 
             Server::setJobStatus($jobId, Server::JOB_STATUS_ERROR);
         }
