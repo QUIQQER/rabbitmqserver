@@ -134,6 +134,8 @@ class JobChecker
      *
      * @param array $workerData - Class of the last Worker that was executed
      * @return void
+     *
+     * @throws QUI\Exception
      */
     public static function checkMemoryUsage($workerData)
     {
@@ -141,9 +143,15 @@ class JobChecker
         $memoryThreshold   = (int)$Conf->get('jobchecker', 'critical_memory_threshold');
         $peakUsageMegaByte = (memory_get_peak_usage(true) / 1024) / 1024;
 
-        if ($peakUsageMegaByte > $memoryThreshold && $peakUsageMegaByte > self::$maxPeak) {
+        try {
+            $maxPeak = (int)QUI\Cache\Manager::get('quiqqer/rabbitmqserver/memory_max_peak');
+        } catch (\Exception $Exception) {
+            $maxPeak = 0;
+        }
+
+        if ($peakUsageMegaByte > $memoryThreshold && $peakUsageMegaByte > ($maxPeak + 25)) {
             self::sendMemoryWarningMail($peakUsageMegaByte, $workerData);
-            self::$maxPeak = $peakUsageMegaByte;
+            QUI\Cache\Manager::set('quiqqer/rabbitmqserver/memory_max_peak', $maxPeak);
         }
     }
 
