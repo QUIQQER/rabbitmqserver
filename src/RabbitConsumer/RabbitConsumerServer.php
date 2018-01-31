@@ -169,7 +169,7 @@ pcntl_signal(SIGHUP, "stopRabbitConsumers");
 startRabbitConsumers();
 
 while (!empty($consumerProcesses)) {
-    sleep(10);
+    sleep(3);
 
     foreach ($consumerProcesses as $pid => $data) {
         $process = $data['process'];

@@ -72,7 +72,7 @@
                 </conf>
                 <conf name="critical_memory_threshold">
                     <type><![CDATA[integer]]></type>
-                    <defaultvalue>230</defaultvalue>
+                    <defaultvalue>5000</defaultvalue>
                 </conf>
             </section>
         </config>

@@ -108,10 +108,10 @@
             <de><![CDATA[Maximale Zeit <b>in Sekunden</b>, die ein Job sich in Ausführung befinden darf, bevor er als auffällig gilt.]]></de>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.settings.critical_memory_threshold.title">
-            <de><![CDATA[Kritische memory_usage Schwelle (MB)]]></de>
+            <de><![CDATA[Kritische Arbeitssepicher-Schwelle (MB)]]></de>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.settings.critical_memory_threshold.description" html="true">
-            <de><![CDATA[Maximale Höhe der <b>peak memory usage</b> (MB). Wird diese Grenze durch einen RabbitConsumer überschritten, wird eine Warn E-Mail an den System-Administrator versendet.]]></de>
+            <de><![CDATA[Maximale Höhe der <b>memory usage</b> (MB), die von allen RabbitConsumer-Prozessen zusammen erreicht werden darf. RabbitConsumer, deren Speicherverbrauch den Gesamtverbrauch über diese Schwelle treten lassen, werden automatisch beendet und neu gestartet.]]></de>
         </locale>
 
         <!-- cron.xml -->
