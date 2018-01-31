@@ -5,7 +5,6 @@ define('QUIQQER_CONSOLE', true);
 require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/header.php';
 
 use QUI\RabbitMQServer\Server;
-use QUI\RabbitMQServer\JobChecker;
 
 // run as daemon (forever)
 set_time_limit(0);
@@ -32,8 +31,38 @@ if ($minPriority < 1) {
     $minPriority = 255;
 }
 
+// settings
+$Conf            = QUI::getPackage('quiqqer/rabbitmqserver')->getConfig();
+$memoryThreshold = (int)$Conf->get('jobchecker', 'critical_memory_threshold');
+$workerCount     = (int)$Conf->get('consumer', 'consumer_count');
+
+/**
+ * Check memory usage and exit if threshold is exceeded
+ *
+ * @return void
+ */
+function memoryCheck()
+{
+    global $memoryThreshold;
+    global $workerCount;
+
+    $currentMemoryUsage = (memory_get_usage() / 1024) / 1024;
+    $approxTotalUsage   = $currentMemoryUsage * $workerCount;
+
+    if ($approxTotalUsage > $memoryThreshold) {
+        QUI\System\Log::addInfo(
+            'RabbitConsumer (pid: ' . getmypid() . ') exiting because total memory usage has'
+            . ' reached ' . $approxTotalUsage . 'MB'
+        );
+
+        exit;
+    }
+}
+
 /**
  * Requeue current Job
+ *
+ * @return void
  */
 function requeue()
 {
@@ -141,9 +170,6 @@ $callback = function ($msg) {
         return;
     }
 
-    // check memory usage
-    JobChecker::checkMemoryUsage($job);
-
     try {
         $jobId        = $job['jobId'];
         $currentJobId = $jobId;
@@ -173,6 +199,12 @@ $callback = function ($msg) {
     try {
         Server::setJobStatus($jobId, Server::JOB_STATUS_RUNNING);
         Server::setJobResult($jobId, $Worker->execute());
+
+        unset($Worker);
+
+        // start garbage collection manually to try to cleanup any memory leakage
+        gc_collect_cycles();
+
         Server::setJobStatus($jobId, Server::JOB_STATUS_FINISHED);
     } catch (\Exception $Exception) {
         if (isDBException($Exception)) {
@@ -216,6 +248,9 @@ $callback = function ($msg) {
     }
 
     $CurrentWorker = null;
+
+    // Check memory usage
+    memoryCheck();
 };
 
 /**
@@ -253,5 +288,6 @@ while (count($Channel->callbacks)) {
             shutdown();
         }
     }
+
     $Channel->wait();
 }
