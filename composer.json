@@ -1,7 +1,7 @@
 {
   "name": "quiqqer/rabbitmqserver",
   "type": "quiqqer-module",
-  "description": "RabbitMQ Quiqqer Module to use RabbitMQ message queue with the quiqqer queue manager",
+  "description": "RabbitMQ QUIQQER module to use RabbitMQ message queue with the quiqqer queue manager",
   "version": "dev-dev",
   "license": "GPL-3.0+",
   "authors": [
