@@ -1,55 +1,53 @@
-rabbitmqserver
+![QUIQQER Frontend Users](bin/images/Readme.jpg)
+
+QUIQQER RabbitMQ Server
 ========
 
-RabbitMQ Quiqqer Module to use RabbitMQ message queue with the quiqqer queue manager
+This plugin enables the usage of the RabbitMQ message queue within QUIQQER. Create your own worker classes and queue them in a job-queue that is processed asynchronously.
+This package requires the installation of the RabbitMQ server. 
 
-Paketname:
+Package Name:
 
     quiqqer/rabbitmqserver
 
-
-Features (Funktionen)
+Features
 --------
-RabbitMQ Quiqqer Module to use RabbitMQ message queue with the quiqqer queue manager
-
+* Run a php server script that dynamically fetches jobs from a RabbitMQ message queue and starts specialized Worker processes
+that execute individual tasks
+* Set the number of parallel RabbitConsumer php processes that fetch jobs as soon as they are available
+* Separate your consumers into normal and high priority consumers to better balance between fast and heavy-load jobs
+* JobChecker - Checks jobs for irregularities like a too long queue or execution time
 
 Installation
 ------------
+The Package Name is: quiqqer/rabbitmqserver
 
-Der Paketname ist: quiqqer/rabbitmqserver
+* RabbitMQ Server (https://www.rabbitmq.com/download.html); current version: `3.6.5`
+* Setup of RabbitMQ Server account(s) (https://dev.quiqqer.com/quiqqer/rabbitmqserver/wikis/user-config)
+* Configration of the RabbitMQ login credentials
+  * You can test your configuration with the CLI tool `quiqqer:rabbitmqserver`
+* `pcntl`-extenstion for PHP (http://php.net/manual/de/book.pcntl.php)
+* `bcmath`-extension for PHP (http://php.net/manual/de/book.bc.php)
+* `mbstring`-extension for PHP (http://php.net/manual/de/book.mbstring.php)
+* Configure and run `RabbitConsumerServer`-daemons (s. https://dev.quiqqer.com/quiqqer/rabbitmqserver/wikis/daemon-config)
 
-
-Voraussetzungen
----------------
-* RabbitMQ Server (https://www.rabbitmq.com/download.html); aktuelle Version: `3.6.5`
-* Einrichten eines oder mehrerer RabbitMQ Server Benutzer (https://dev.quiqqer.com/quiqqer/rabbitmqserver/wikis/user-config)
-* Konfiguration der RabbitMQ Server Zugangsdaten und Optionen über die QUIQQER Admin-Oberfläche (`Einstellungen -> RabbitMQ-Modul`)
-  * Zum Testen der Konfiguration kann das Konsolen-Tool `quiqqer:rabbitmqserver` ausgeführt werden
-* `pcntl`-Erweiterung für PHP (http://php.net/manual/de/book.pcntl.php)
-* `bcmath`-Erweiterung für PHP (http://php.net/manual/de/book.bc.php)
-* `mbstring`-Erweiterung für PHP (http://php.net/manual/de/book.mbstring.php)
-* Konfiguration und Ausführung des `RabbitConsumerServer`-daemons (s. https://dev.quiqqer.com/quiqqer/rabbitmqserver/wikis/daemon-config)
-
-Mitwirken
+Contribute
 ----------
-
+- Project: https://dev.quiqqer.com/quiqqer/rabbitmqserver
 - Issue Tracker: https://dev.quiqqer.com/quiqqer/rabbitmqserver/issues
-- Source Code: https://dev.quiqqer.com/quiqqer/rabbitmqserver/tree/dev
+- Source Code: https://dev.quiqqer.com/quiqqer/rabbitmqserver/tree/master
 
 Support
 -------
+If you found any errors, have wishes or suggestions for improvement,
+you can contact us by email at support@pcsg.de.
 
-Falls Sie einen Fehler gefunden haben oder Verbesserungen wünschen,
-senden Sie bitte eine E-Mail an support@pcsg.de.
+We will transfer your request to the responsible developers.
 
-
-Lizenz
+Usage
 -------
+See the [Wiki](https://dev.quiqqer.com/quiqqer/queuemanager/wikis/home) for setup instructions
 
-
-Entwickler
---------
-
-Patrick Müller
-
-www.pcsg.de
+License
+-------
+GPL-3.0+
