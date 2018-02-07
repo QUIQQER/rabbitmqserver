@@ -20,6 +20,7 @@ $CurrentWorker   = null;
 $currentPriority = 1;
 $currentJobId    = 0;
 $minPriority     = 1;
+$exit            = false;
 
 if (!empty($argv[1])) {
     $minPriority = (int)$argv[1];
@@ -124,6 +125,7 @@ $callback = function ($msg) {
     global $minPriority;
     global $currentPriority;
     global $currentJobId;
+    global $exit;
 
     $job = json_decode($msg->body, true);
 
@@ -251,6 +253,10 @@ $callback = function ($msg) {
 
     // Check memory usage
     memoryCheck();
+
+    if ($exit) {
+        exit;
+    }
 };
 
 /**
@@ -261,9 +267,10 @@ $callback = function ($msg) {
 function shutdown()
 {
     global $Channel;
-    $Channel->close();
+    global $exit;
 
-    exit;
+    $Channel->close();
+    $exit = true;
 }
 
 declare(ticks=1);
