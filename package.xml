@@ -8,6 +8,10 @@
             <locale group="quiqqer/rabbitmqserver" var="package.description"/>
         </description>
 
+        <preview>
+            <image src="URL_OPT_DIR/quiqqer/rabbitmqserver/bin/images/preview/Backend_Settings.png"/>
+        </preview>
+
         <support>
             <email><![CDATA[support@pcsg.de]]></email>
             <forum><![CDATA[https://community.quiqqer.com]]></forum>
