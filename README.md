@@ -1,5 +1,3 @@
-![QUIQQER Frontend Users](bin/images/Readme.jpg)
-
 QUIQQER RabbitMQ Server
 ========
 
