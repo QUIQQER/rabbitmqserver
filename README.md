@@ -1,3 +1,5 @@
+![QUIQQER RabbitMQ Server](bin/images/Readme.jpg)
+
 QUIQQER RabbitMQ Server
 ========
 

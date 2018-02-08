@@ -8,6 +8,8 @@
             <locale group="quiqqer/rabbitmqserver" var="package.description"/>
         </description>
 
+        <image src="URL_OPT_DIR/quiqqer/rabbitmqserver/bin/images/Logo.jpg"/>
+
         <preview>
             <image src="URL_OPT_DIR/quiqqer/rabbitmqserver/bin/images/preview/Backend_Settings.png"/>
         </preview>
