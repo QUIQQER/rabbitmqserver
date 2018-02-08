@@ -2,8 +2,6 @@
 <locales>
 
     <groups name="quiqqer/rabbitmqserver" datatype="js">
-
-
     </groups>
 
     <groups name="quiqqer/rabbitmqserver" datatype="php,js">
@@ -14,112 +12,144 @@
         </locale>
         <locale name="package.description">
             <de><![CDATA[RabbitMQ Quiqqer-Modul zur Verwendung der RabbitMQ-Nachrichtenwarteschlange mit dem QUIQQER Queuemanager]]></de>
-            <en><![CDATA[RabbitMQ Quiqqer Module to use RabbitMQ message queue with the quiqqer queue manager]]></en>
+            <en><![CDATA[RabbitMQ Quiqqer Module to use RabbitMQ message queue with the QUIQQER Queue Manager]]></en>
         </locale>
         <!-- Settings -->
         <locale name="settings.title">
             <de><![CDATA[RabbitMQ-Modul]]></de>
+            <en><![CDATA[RabbitMQ Module]]></en>
         </locale>
         <locale name="settings.category.rabbitmqserver.title">
             <de><![CDATA[Server]]></de>
+            <en><![CDATA[Server]]></en>
         </locale>
 
         <!-- Settings: server -->
         <locale name="settings.rabbitmqserver.server.title">
             <de><![CDATA[RabbitMQ Server-Einstellungen]]></de>
+            <en><![CDATA[RabbitMQ Server-Settings]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.host.title">
             <de><![CDATA[host]]></de>
+            <en><![CDATA[host]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.port.title">
             <de><![CDATA[port]]></de>
+            <en><![CDATA[port]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.user.title">
             <de><![CDATA[user]]></de>
+            <en><![CDATA[user]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.password.title">
             <de><![CDATA[password]]></de>
+            <en><![CDATA[password]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.vhost.title">
             <de><![CDATA[vhost]]></de>
+            <en><![CDATA[vhost]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.insist.title">
             <de><![CDATA[insist]]></de>
+            <en><![CDATA[insist]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.login_method.title">
             <de><![CDATA[login_method]]></de>
+            <en><![CDATA[login_method]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.locale.title">
             <de><![CDATA[locale]]></de>
+            <en><![CDATA[locale]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.connection_timeout.title">
             <de><![CDATA[connection_timeout]]></de>
+            <en><![CDATA[connection_timeout]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.read_write_timeout.title">
             <de><![CDATA[read_write_timeout]]></de>
+            <en><![CDATA[read_write_timeout]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.keepalive.title">
             <de><![CDATA[keepalive]]></de>
+            <en><![CDATA[keepalive]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.server.settings.heartbeat.title">
             <de><![CDATA[heartbeat]]></de>
+            <en><![CDATA[heartbeat]]></en>
         </locale>
 
         <!-- Settings: consumer -->
         <locale name="settings.rabbitmqserver.consumer.title">
             <de><![CDATA[RabbitMQ Consumer]]></de>
+            <en><![CDATA[RabbitMQ Consumer]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.consumer.settings.consumer_count.title">
             <de><![CDATA[Anzahl Consumer]]></de>
+            <en><![CDATA[Consumer count]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.consumer.settings.consumer_count.description">
             <de><![CDATA[Bestimmt die Anzahl an Consumern, die parallel laufen und Jobs bearbeiten.]]></de>
+            <en><![CDATA[Determines the number of consumers that run in parallel and execute queue jobs.]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.consumer.settings.high_priority_consumer_count.title">
             <de><![CDATA[Anzahl High-Priority Consumer]]></de>
+            <en><![CDATA[Number of high priority consumers]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.consumer.settings.high_priority_consumer_count.description">
             <de><![CDATA[Bestimmt den Anteil an Consumern (von der Gesamtzahl der Consumer), die ausschließlich High-Priority Jobs bearbeiten.]]></de>
+            <en><![CDATA[Determines the fraction of consumers (based on the total number of consumers) that exclusively execute high prioty jobs.]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.consumer.settings.high_priority_threshold.title">
             <de><![CDATA[High-Priority-Schwelle]]></de>
+            <en><![CDATA[High priority threshold]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.consumer.settings.high_priority_threshold.description">
             <de><![CDATA[Prioritäts-Wert, ab dem Jobs als "High-Priority"-Jobs gelten.]]></de>
+            <en><![CDATA[Priority threshold. Every job with a priority higher than this is a high priority job.]]></en>
         </locale>
 
         <!-- Settings: jobchecker -->
         <locale name="settings.category.jobchecker.title">
             <de><![CDATA[Job-Checker]]></de>
+            <en><![CDATA[Job-Checker]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.title">
             <de><![CDATA[Job-Checker]]></de>
+            <en><![CDATA[Job-Checker]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_wait.title">
             <de><![CDATA[Maximale Zeit für unbearbeitete Jobs (Sekunden)]]></de>
+            <en><![CDATA[Max wait time for jobs in queue (seconds) ]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_wait.description">
             <de><![CDATA[Maximale Zeit <b>in Sekunden</b>, die ein Job in der Warteschlange stehen darf, bevor er als auffällig gilt.]]></de>
+            <en><![CDATA[Max time in <b>seconds</b> a job can be waiting in the queue, before it is considered conspicuous.]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_execute.title">
             <de><![CDATA[Maximale Zeit für ausgeführte Jobs (Sekunden)]]></de>
+            <en><![CDATA[Max time for jobs in execution (seconds)]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.settings.max_time_execute.description">
             <de><![CDATA[Maximale Zeit <b>in Sekunden</b>, die ein Job sich in Ausführung befinden darf, bevor er als auffällig gilt.]]></de>
+            <en><![CDATA[Max time in <b>seconds</b> a job may be in execution before it is considered conspicuous.]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.settings.critical_memory_threshold.title">
             <de><![CDATA[Kritische Arbeitssepicher-Schwelle (MB)]]></de>
+            <en><![CDATA[Critical RAM threshold (MB)]]></en>
         </locale>
         <locale name="settings.rabbitmqserver.jobchecker.settings.critical_memory_threshold.description" html="true">
             <de><![CDATA[Maximale Höhe der <b>memory usage</b> (MB), die von allen RabbitConsumer-Prozessen zusammen erreicht werden darf. RabbitConsumer, deren Speicherverbrauch den Gesamtverbrauch über diese Schwelle treten lassen, werden automatisch beendet und neu gestartet.]]></de>
+            <en><![CDATA[Maximum <b>memory usage</b> (MB) that all consumers combined are allowed to reach. Consumers that exceed this threshold are automatically terminated and restarted.]]></en>
         </locale>
 
         <!-- cron.xml -->
         <locale name="cron.checkJobs.title">
             <de><![CDATA[RabbitMQ - JobChecker]]></de>
+            <en><![CDATA[RabbitMQ - JobChecker]]></en>
         </locale>
         <locale name="cron.checkJobs.description">
-            <de><![CDATA[Prüft, ob sich Queue-Jobs zu lange in der Warteschlange oder in Ausführung befinden und sendet eine E-Mail an den Administrator.]]></de>
+            <de><![CDATA[Prüft, ob sich Queue-Jobs zu lange in der Warteschlange oder in Ausführung befinden und sendet eine E-Mail mit auffälligen Job-IDs an den Administrator.]]></de>
+            <en><![CDATA[Checks if queue jobs wait too long in the queue or take too long to execute. Sends an e-mail with conspicuous job IDs to an administrator.]]></en>
         </locale>
 
     </groups>
@@ -128,12 +158,15 @@
 
         <locale name="server.title">
             <de><![CDATA[RabbitMQ]]></de>
+            <en><![CDATA[RabbitMQ]]></en>
         </locale>
         <locale name="server.description">
             <de><![CDATA[Jobs werden mittels RabbiMQ-Server ausgeführt. Setzt voraus, dass ein entsprechendes Server installiert ist und läuft.]]></de>
+            <en><![CDATA[Jobs are executed via RabbitMQ server. This requires a running instance of a RabbitMQ server instance.]]></en>
         </locale>
         <locale name="exception.server.connection.error">
             <de><![CDATA[Bei der Verbindung zum RabbitMQ-Server ([host]:[port]) ist ein unerwarteter Fehler aufgetreten. Bitte error.log überprüfen.]]></de>
+            <en><![CDATA[An error occurred while connecting to the RabbitMQ server ([host]:[port]). Please check error.log file.]]></en>
         </locale>
 
         <!-- JobChecker -->
@@ -147,6 +180,15 @@
     <li>Anzahl Jobs, die länger als <b>[maxTimeExecute] Sekunden</b> in Ausführung waren: <b>[execute]</b></li>
     <li>IDs: [executeIds]</li>
 </ul>]]></de>
+            <en><![CDATA[<h1>JobChecker - Results</h1>
+<ul>
+    <li>Number of jobs that have been queued longer than <b>[maxTimeWait] seconds</b>: <b>[wait]</b></li>
+    <li>IDs: [waitIds]</li>
+</ul>
+<ul>
+    <li>Number of jobs whose execution took longer than <b>[maxTimeExecute] seconds</b>: <b>[execute]</b></li>
+    <li>IDs: [executeIds]</li>
+</ul>]]></en>
         </locale>
         <locale name="jobchecker.mail.memory_warning.content" html="true">
             <de><![CDATA[<h1>JobChecker - Memory usage Warnung!</h1>
@@ -156,6 +198,13 @@ Es wurde eine peak memory usage von <b>[peakUsage]</b> MB gemessen. Vor dem Peak
 <p>
 [workerData]
 <p>]]></de>
+            <en><![CDATA[<h1>JobChecker - Memory usage warning!</h1>
+<p>
+A peak memory usage of <b>[peakUsage]</b> MB was measured. Worker that was executed before the peak: <b>[workerClass]</b>
+</p>
+<p>
+[workerData]
+<p>]]></en>
         </locale>
 
     </groups>
