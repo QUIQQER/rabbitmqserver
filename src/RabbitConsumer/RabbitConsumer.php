@@ -21,6 +21,7 @@ $currentPriority = 1;
 $currentJobId    = 0;
 $minPriority     = 1;
 $exit            = false;
+$isProcessing    = false;
 
 if (!empty($argv[1])) {
     $minPriority = (int)$argv[1];
@@ -73,6 +74,7 @@ function requeue()
 
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     if (empty($CurrentWorker)) {
+        callbackEnd();
         return;
     }
 
@@ -82,6 +84,8 @@ function requeue()
     QUI\System\Log::addInfo(
         'Re-queueing Job #' . $currentJobId . ' ("' . $CurrentWorker::getClass() . '")'
     );
+
+    callbackEnd();
 }
 
 /**
@@ -119,6 +123,22 @@ $errorHandler = function () {
 register_shutdown_function($errorHandler);
 
 // execute job
+function callbackEnd()
+{
+    global $Channel;
+    global $CurrentWorker;
+    global $exit;
+    global $isProcessing;
+
+    $CurrentWorker = null;
+    $isProcessing  = false;
+
+    if ($exit) {
+        $Channel->close();
+        exit;
+    }
+}
+
 $callback = function ($msg) {
     global $Channel;
     global $CurrentWorker;
@@ -126,6 +146,9 @@ $callback = function ($msg) {
     global $currentPriority;
     global $currentJobId;
     global $exit;
+    global $isProcessing;
+
+    $isProcessing = true;
 
     $job = json_decode($msg->body, true);
 
@@ -135,8 +158,8 @@ $callback = function ($msg) {
             . json_last_error_msg() . ' [code: ' . json_last_error() . ']. Abort process.'
         );
 
-        $CurrentWorker = null;
         $Channel->basic_ack($msg->delivery_info['delivery_tag']);
+        callbackEnd();
         return;
     }
 
@@ -168,7 +191,7 @@ $callback = function ($msg) {
             'RabbitConsumer.php :: job information array missing keys. Abort process.'
         );
 
-        $CurrentWorker = null;
+        callbackEnd();
         return;
     }
 
@@ -194,7 +217,7 @@ $callback = function ($msg) {
 
         QUI\System\Log::writeException($Exception);
 
-        $CurrentWorker = null;
+        callbackEnd();
         return;
     }
 
@@ -223,7 +246,7 @@ $callback = function ($msg) {
 
         Server::setJobStatus($jobId, Server::JOB_STATUS_ERROR);
 
-        $CurrentWorker = null;
+        callbackEnd();
         return;
     }
 
@@ -249,14 +272,11 @@ $callback = function ($msg) {
         }
     }
 
-    $CurrentWorker = null;
-
     // Check memory usage
     memoryCheck();
 
-    if ($exit) {
-        exit;
-    }
+    // end callback
+    callbackEnd();
 };
 
 /**
@@ -268,8 +288,13 @@ function shutdown()
 {
     global $Channel;
     global $exit;
+    global $isProcessing;
 
-    $Channel->close();
+    if (!$isProcessing) {
+        $Channel->close();
+        exit;
+    }
+
     $exit = true;
 }
 
