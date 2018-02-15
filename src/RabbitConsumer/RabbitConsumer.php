@@ -341,6 +341,10 @@ $Channel->basic_consume(Server::getUniqueQueueName(), '', false, false, false, f
 
 while (count($Channel->callbacks)) {
     try {
+        if (is_null($Channel) || is_null($Channel->getConnection())) {
+            throw new Exception('Channel or Connection is null, fetch new connection');
+        }
+
         $Channel->wait();
     } catch (\Exception $Exception) {
         $Channel = getChannel();
