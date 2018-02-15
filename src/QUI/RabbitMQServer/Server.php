@@ -394,13 +394,32 @@ class Server implements IQueueServer
     }
 
     /**
+     * Check if a connection to a RabbitMQ server is currently established
+     *
+     * @return bool
+     */
+    public static function isConnected()
+    {
+        if (is_null(self::$Connection) || is_null(self::$Channel)) {
+            return false;
+        }
+
+        return self::$Channel->getConnection()->isConnected();
+    }
+
+    /**
      * Get RabbitMQ queue channel
      *
+     * @param bool $forceReconnect (optional) - Forece reconnection to RabbitMQ server
      * @return AMQPChannel
+     *
+     * @throws QUI\Exception
      */
-    public static function getChannel()
+    public static function getChannel($forceReconnect = false)
     {
-        if (!is_null(self::$Channel)) {
+        if (!$forceReconnect
+            && !is_null(self::$Channel)
+            && self::isConnected()) {
             return self::$Channel;
         }
 

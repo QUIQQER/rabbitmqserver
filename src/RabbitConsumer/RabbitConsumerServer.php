@@ -3,6 +3,8 @@
 define('QUIQQER_SYSTEM', true);
 require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/header.php';
 
+use QUI\RabbitMQServer\Server;
+
 if (!function_exists('pcntl_signal')) {
     echo 'Could not find function "pcntl_signal". Is PHP pcntl extension installed and activated?';
     exit(-1);
@@ -84,6 +86,22 @@ function startNewRabbitConsumer($highPriority = false)
 }
 
 /**
+ * Check if the connection to the RabbitMQ server is still alive
+ *
+ * @return bool
+ */
+function checkServerConnection()
+{
+    try {
+        Server::getChannel(true);
+    } catch (\Exception $Exception) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Start all RabbitConsumer.php processes according to the settings
  *
  * @return void
@@ -121,7 +139,7 @@ function startRabbitConsumers()
  *
  * @return void
  */
-function stopRabbitConsumers($sig)
+function stopRabbitConsumers()
 {
     global $consumerProcesses;
 
@@ -186,6 +204,14 @@ while (!empty($consumerProcesses)) {
 
         unset($consumerProcesses[$pid]);
 
-        startNewRabbitConsumer($data['highPriority']);
+        while (true) {
+            if (checkServerConnection()) {
+                startNewRabbitConsumer($data['highPriority']);
+                break;
+            }
+
+            // Wait for 5 seconds and then check server connection again
+            sleep(5);
+        }
     }
 }

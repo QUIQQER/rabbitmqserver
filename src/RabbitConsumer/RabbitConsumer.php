@@ -9,13 +9,7 @@ use QUI\RabbitMQServer\Server;
 // run as daemon (forever)
 set_time_limit(0);
 
-try {
-    $Channel = Server::getChannel();
-} catch (\Exception $Exception) {
-    QUI\System\Log::writeException($Exception);
-    shutdown();
-}
-
+$Channel         = null;
 $CurrentWorker   = null;
 $currentPriority = 1;
 $currentJobId    = 0;
@@ -57,7 +51,7 @@ function memoryCheck()
             . ' reached ' . $approxTotalUsage . 'MB'
         );
 
-        exit;
+        shutdown();
     }
 }
 
@@ -106,12 +100,16 @@ function isDBException(\Exception $Exception)
 $errorHandler = function () {
     global $CurrentWorker;
 
+    $error = error_get_last();
+
+    QUI\System\Log::addError(
+        'RabbitConsumer shutdown :: ' . json_encode($error)
+    );
+
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     if (empty($CurrentWorker)) {
         return;
     }
-
-    $error = error_get_last();
 
     requeue();
 
@@ -145,12 +143,10 @@ $callback = function ($msg) {
     global $minPriority;
     global $currentPriority;
     global $currentJobId;
-    global $exit;
     global $isProcessing;
 
     $isProcessing = true;
-
-    $job = json_decode($msg->body, true);
+    $job          = json_decode($msg->body, true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
         QUI\System\Log::addError(
@@ -171,6 +167,7 @@ $callback = function ($msg) {
 
     if ($priority < $minPriority) {
         $Channel->basic_reject($msg->delivery_info['delivery_tag'], true);
+        callbackEnd();
         return;
     } else {
         $Channel->basic_ack($msg->delivery_info['delivery_tag']);
@@ -291,7 +288,10 @@ function shutdown()
     global $isProcessing;
 
     if (!$isProcessing) {
-        $Channel->close();
+        if ($Channel) {
+            $Channel->close();
+        }
+
         exit;
     }
 
@@ -304,22 +304,41 @@ pcntl_signal(SIGINT, "shutdown");
 pcntl_signal(SIGTERM, "shutdown");
 pcntl_signal(SIGHUP, "shutdown");
 
+/**
+ * Get Channel to RabbitMQ server
+ *
+ * @return \PhpAmqpLib\Channel\AMQPChannel
+ */
+function getChannel()
+{
+    global $Channel;
+
+    try {
+        $Channel = Server::getChannel(true);
+    } catch (\Exception $Exception) {
+        QUI\System\Log::addError(
+            'Exiting RabbitConsumer because there was a connection error to the RabbitMQ server'
+            . ': ' . $Exception->getMessage()
+        );
+
+        exit;
+    }
+
+    return $Channel;
+}
+
 //$Channel->queue_declare('quiqqer_queue', false, true, false, false);
 //$Channel->queue_bind('quiqqer_queue', 'quiqqer_exchange');
+$Channel = getChannel();
 $Channel->basic_qos(null, 1, false);
 $Channel->basic_consume(Server::getUniqueQueueName(), '', false, false, false, false, $callback);
 
 while (count($Channel->callbacks)) {
-    if (is_null($Channel->getConnection())) {
-        try {
-            $Channel = Server::getChannel();
-            $Channel->basic_qos(null, 1, false);
-            $Channel->basic_consume(Server::getUniqueQueueName(), '', false, false, false, false, $callback);
-        } catch (\Exception $Exception) {
-            QUI\System\Log::writeException($Exception);
-            shutdown();
-        }
+    try {
+        $Channel->wait();
+    } catch (\Exception $Exception) {
+        $Channel = getChannel();
+        $Channel->basic_qos(null, 1, false);
+        $Channel->basic_consume(Server::getUniqueQueueName(), '', false, false, false, false, $callback);
     }
-
-    $Channel->wait();
-}
+};
