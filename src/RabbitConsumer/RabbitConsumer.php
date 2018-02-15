@@ -102,9 +102,15 @@ $errorHandler = function () {
 
     $error = error_get_last();
 
-    QUI\System\Log::addError(
-        'RabbitConsumer shutdown :: ' . json_encode($error)
-    );
+    if (is_null($error)) {
+        QUI\System\Log::addError(
+            'RabbitConsumer shutdown'
+        );
+    } else {
+        QUI\System\Log::addError(
+            'RabbitConsumer shutdown :: ' . json_encode($error)
+        );
+    }
 
     /** @var \QUI\QueueManager\QueueWorker $CurrentWorker */
     if (empty($CurrentWorker)) {
