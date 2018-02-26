@@ -5,6 +5,7 @@ define('QUIQQER_CONSOLE', true);
 require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/header.php';
 
 use QUI\RabbitMQServer\Server;
+use Namefruits\Juicer\Handler\Tables as JuicerTables;
 
 // run as daemon (forever)
 set_time_limit(0);
@@ -124,6 +125,28 @@ $errorHandler = function () {
     );
 };
 
+/**
+ * Check the QUIQQER database connection and rebuilt
+ * it if necessary
+ *
+ * @return void
+ */
+function checkDBConnection()
+{
+    try {
+        QUI::getDataBase()->fetch(array(
+            'count' => 1,
+            'from'  => JuicerTables::getProjectsTable()
+        ));
+    } catch (\Exception $Exception) {
+        QUI\System\Log::addWarning(
+            'MySQL connection seems to be lost, resetting. Error: ' . $Exception->getMessage()
+        );
+
+        QUI::$DataBase2 = null;
+    }
+}
+
 register_shutdown_function($errorHandler);
 
 // execute job
@@ -165,6 +188,7 @@ $callback = function ($msg) {
         return;
     }
 
+    // Check priority
     $priority = 1;
 
     if (!empty($job['priority'])) {
@@ -180,6 +204,9 @@ $callback = function ($msg) {
     }
 
     $currentPriority = $priority;
+
+    // Decode and execute job
+    checkDBConnection();
 
     if (!isset($job['jobId'])
         || !isset($job['jobData'])
