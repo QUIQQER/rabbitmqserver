@@ -140,7 +140,8 @@ function checkDBConnection()
         ));
     } catch (\Exception $Exception) {
         QUI\System\Log::addWarning(
-            'MySQL connection seems to be lost, resetting. Error: ' . $Exception->getMessage()
+            'MySQL connection seems to be lost, reconnecting. Database error that was thrown: '
+            . $Exception->getMessage()
         );
 
         QUI::$DataBase2 = null;
