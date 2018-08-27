@@ -3,6 +3,7 @@
 namespace QUI\RabbitMQServer;
 
 use QUI;
+use QUI\Cache\Manager as QUICacheManager;
 
 /**
  * Class JobChecker
@@ -29,59 +30,86 @@ class JobChecker
         $settings       = QUI::getPackage('quiqqer/rabbitmqserver')->getConfig()->getSection('jobchecker');
         $maxTimeWait    = (int)$settings['max_time_wait'];
         $maxTimeExecute = (int)$settings['max_time_execute'];
-        $statistics     = array(
+        $statistics     = [
             'wait'       => 0,
-            'waitIds'    => array(),
+            'waitIds'    => [],
             'execute'    => 0,
-            'executeIds' => array()
-        );
+            'executeIds' => []
+        ];
+
+        $cacheName = 'quiqqer/rabbitmqserver/job_checker_reported_ids';
+
+        try {
+            $reportedIds = json_decode(QUICacheManager::get($cacheName));
+        } catch (\Exception $Exception) {
+            $reportedIds = [
+                'waitIds'    => [],
+                'executeIds' => []
+            ];
+        }
 
         // get all jobs that are too long in the queue
         $TimeWait = new \DateTime();
-        $TimeWait = $TimeWait->modify('-' . $maxTimeWait . ' second');
+        $TimeWait = $TimeWait->modify('-'.$maxTimeWait.' second');
 
-        $result = $DB->fetch(array(
+        $result = $DB->fetch([
             'select' => 'id',
             'from'   => QUI::getDBTableName('queueserver_jobs'),
-            'where'  => array(
+            'where'  => [
                 'status'     => Server::JOB_STATUS_QUEUED,
-                'createTime' => array(
+                'createTime' => [
                     'type'  => '<',
                     'value' => $TimeWait->getTimestamp()
-                )
-            )
-        ));
+                ]
+            ]
+        ]);
 
         $statistics['wait'] = count($result);
 
         foreach ($result as $row) {
-            $statistics['waitIds'][] = $row['id'];
+            if (in_array($row['id'], $reportedIds['waitIds'])) {
+                continue;
+            }
+
+            $statistics['waitIds'][]  = $row['id'];
+            $reportedIds['waitIds'][] = $row['id'];
         }
 
         // get all jobs that are too long in the queue
         $TimeExec = new \DateTime();
-        $TimeExec = $TimeExec->modify('-' . $maxTimeExecute . ' second');
+        $TimeExec = $TimeExec->modify('-'.$maxTimeExecute.' second');
 
-        $result = $DB->fetch(array(
+        $result = $DB->fetch([
             'select' => 'id',
             'from'   => QUI::getDBTableName('queueserver_jobs'),
-            'where'  => array(
+            'where'  => [
                 'status'         => Server::JOB_STATUS_RUNNING,
-                'lastUpdateTime' => array(
+                'lastUpdateTime' => [
                     'type'  => '<',
                     'value' => $TimeExec->getTimestamp()
-                )
-            )
-        ));
+                ]
+            ]
+        ]);
 
         $statistics['execute'] = count($result);
 
         foreach ($result as $row) {
-            $statistics['executeIds'][] = $row['id'];
+            if (in_array($row['id'], $reportedIds['executeIds'])) {
+                continue;
+            }
+
+            $statistics['executeIds'][]  = $row['id'];
+            $reportedIds['executeIds'][] = $row['id'];
         }
 
-        if (!empty($statistics['wait']) || !empty($statistics['execute'])) {
+        if (!empty($statistics['waitIds']) || !empty($statistics['executeIds'])) {
             self::sendStatisticsMail($statistics);
+        }
+
+        try {
+            QUICacheManager::set($cacheName, json_encode($reportedIds));
+        } catch (\Exception $Exception) {
+            QUI\System\Log::writeException($Exception);
         }
     }
 
@@ -112,10 +140,10 @@ class JobChecker
             'jobchecker.mail.content',
             array_merge(
                 $statistics,
-                array(
+                [
                     'maxTimeWait'    => (int)$settings['max_time_wait'],
                     'maxTimeExecute' => (int)$settings['max_time_execute']
-                )
+                ]
             )
         ));
 
@@ -177,11 +205,11 @@ class JobChecker
         $Mailer->setBody(QUI::getLocale()->get(
             'quiqqer/rabbitmqserver',
             'jobchecker.mail.memory_warning.content',
-            array(
+            [
                 'peakUsage'   => $peakUsage,
                 'workerClass' => $workerData['jobWorker'],
                 'workerData'  => json_encode($workerData['jobData'])
-            )
+            ]
         ));
 
         $Mailer->setSubject('quiqqqer/rabbitmqserver - Memory usage Warnung');
