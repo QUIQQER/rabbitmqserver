@@ -40,7 +40,7 @@ class JobChecker
         $cacheName = 'quiqqer/rabbitmqserver/job_checker_reported_ids';
 
         try {
-            $reportedIds = json_decode(QUICacheManager::get($cacheName));
+            $reportedIds = json_decode(QUICacheManager::get($cacheName), true);
         } catch (\Exception $Exception) {
             $reportedIds = [
                 'waitIds'    => [],
