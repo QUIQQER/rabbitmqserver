@@ -1,7 +1,7 @@
 <?php
 
 define('QUIQQER_SYSTEM', true);
-require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/header.php';
+require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))).'/header.php';
 
 use QUI\RabbitMQServer\Server;
 
@@ -16,7 +16,7 @@ set_time_limit(0);
 /**
  * Saves pids of RabbitConsumer.php processes and corresponding proc_open resource objects
  */
-$consumerProcesses = array();
+$consumerProcesses = [];
 
 /**
  * Get specific consumer setting
@@ -40,16 +40,16 @@ function startNewRabbitConsumer($highPriority = false)
 {
     global $consumerProcesses;
 
-    $consumerCmd = 'php ' . dirname(__FILE__) . '/RabbitConsumer.php';
+    $consumerCmd = 'php '.dirname(__FILE__).'/RabbitConsumer.php';
 
     if ($highPriority) {
         $highPriorityThreshold = (int)getConsumerSetting('high_priority_threshold');
-        $consumerCmd .= ' ' . $highPriorityThreshold;
+        $consumerCmd           .= ' '.$highPriorityThreshold;
     }
 
     $process = proc_open(
         $consumerCmd,
-        array(),
+        [],
         $pipes
     );
 
@@ -77,12 +77,12 @@ function startNewRabbitConsumer($highPriority = false)
     }
 
     $pid                     = (int)$processInfo['pid'];
-    $consumerProcesses[$pid] = array(
+    $consumerProcesses[$pid] = [
         'process'      => $process,
         'highPriority' => $highPriority
-    );
+    ];
 
-    echo "\nStarted new RabbitConsumer.php process (pid: " . $pid . ')';
+    echo "\nStarted new RabbitConsumer.php process (pid: ".$pid.')';
 }
 
 /**
@@ -154,20 +154,20 @@ function stopRabbitConsumers()
         }
 
         // get child php process (because proc_open starts processes via seperate 'sh ...' process)
-        exec('pgrep -P ' . $pid, $children);
+        exec('pgrep -P '.$pid, $children);
 
         foreach ($children as $childPid) {
             try {
                 posix_kill($childPid, SIGINT);
             } catch (\Exception $Exception) {
-                echo "An error occurred while trying to send INT signal to php process (pid: " . $childPid . ")."
-                     . " Please kill manually.";
+                echo "An error occurred while trying to send INT signal to php process (pid: ".$childPid.")."
+                     ." Please kill manually.";
             }
         }
 
         proc_close($process);
 
-        echo "Stopped RabbitConsumer.php process (pid: " . $pid . ")";
+        echo "Stopped RabbitConsumer.php process (pid: ".$pid.")";
     }
 
     exit;
@@ -186,27 +186,52 @@ pcntl_signal(SIGHUP, "stopRabbitConsumers");
 
 startRabbitConsumers();
 
-while (!empty($consumerProcesses)) {
+$targetCount             = (int)getConsumerSetting('consumer_count');
+$targetCountHighPriority = (int)getConsumerSetting('high_priority_consumer_count');
+
+while (true) {
     sleep(3);
 
-    foreach ($consumerProcesses as $pid => $data) {
-        $process = $data['process'];
-        $status  = proc_get_status($process);
+    $actualCount             = 0;
+    $actualCountHighPriority = 0;
+    $deadPids                = [];
 
-        if ($status
-            && $status['running']
-        ) {
+    foreach ($consumerProcesses as $pid => $data) {
+        $process        = $data['process'];
+        $isHighPriority = $data['highPriority'];
+        $status         = proc_get_status($process);
+
+        if ($status && $status['running']) {
+            $actualCount++;
+
+            if ($isHighPriority) {
+                $actualCountHighPriority++;
+            }
             continue;
         }
 
-        echo 'RabbitConsumer.php process (pid: ' . $pid . ') seems to have exited on its own. Removing from list.'
-             . ' Starting replacement process.';
+        $deadPids[] = $pid;
+
+        echo 'RabbitConsumer.php process (pid: '.$pid.') seems to have exited on its own. Removing from list.'
+             .' Starting replacement process.';
 
         unset($consumerProcesses[$pid]);
+    }
 
+    // If all RabitConsumer.php are running -> every is fine
+    if ($actualCount >= $targetCount) {
+        continue;
+    }
+
+    for ($i = 0; $i < ($targetCount - $actualCount); $i++) {
         while (true) {
             if (checkServerConnection()) {
-                startNewRabbitConsumer($data['highPriority']);
+                if ($actualCountHighPriority < $targetCountHighPriority) {
+                    startNewRabbitConsumer(true);
+                    $actualCountHighPriority++;
+                } else {
+                    startNewRabbitConsumer(false);
+                }
                 break;
             }
 
