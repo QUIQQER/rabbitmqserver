@@ -206,6 +206,18 @@ A peak memory usage of <b>[peakUsage]</b> MB was measured. Worker that was execu
 [workerData]
 <p>]]></en>
         </locale>
+        <locale name="jobchecker.mail.shutdown_warning" html="true">
+            <de><![CDATA[<h1>JobChecker - Möglicher RabbitConsumer shutdown!</h1>
+<p>
+Es gibt aktuell <b>[jobCount]</b> Queue-Jobs, die seit <b>[checkHours] Stunden</b> in der Warteschleife sind und <b>nicht verarbeitet wurden</b>.
+Bitte prüfen, ob der zugehörige RabbitConsumer-Prozess noch ordnungsgemäß läuft!
+</p>]]></de>
+            <en><![CDATA[<h1>JobChecker - Possible RabbitConsumer shutdown!</h1>
+<p>
+There are currently <b>[jobCount]</b> queue jobs that have <b>not been processed</b> for <b>[checkHours] hours</b>!
+Please check if the corresponding RabbitConsumer process is running correctly!
+</p>]]></en>
+        </locale>
 
     </groups>
 
