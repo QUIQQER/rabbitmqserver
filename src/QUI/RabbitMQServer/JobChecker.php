@@ -48,6 +48,26 @@ class JobChecker
             ];
         }
 
+        // Special check: all jobs that waited more than 3 hours
+        $TimeWait = new \DateTime();
+        $TimeWait = $TimeWait->modify('-3 hour');
+
+        $result = $DB->fetch([
+            'select' => 'id',
+            'from'   => QUI::getDBTableName('queueserver_jobs'),
+            'where'  => [
+                'status'     => Server::JOB_STATUS_QUEUED,
+                'createTime' => [
+                    'type'  => '<',
+                    'value' => $TimeWait->getTimestamp()
+                ]
+            ]
+        ]);
+
+        if (!empty($result)) {
+            self::sendShutDownWarning(count($result));
+        }
+
         // get all jobs that are too long in the queue
         $TimeWait = new \DateTime();
         $TimeWait = $TimeWait->modify('-'.$maxTimeWait.' second');
@@ -110,6 +130,42 @@ class JobChecker
             QUICacheManager::set($cacheName, json_encode($reportedIds));
         } catch (\Exception $Exception) {
             QUI\System\Log::writeException($Exception);
+        }
+    }
+
+    /**
+     * Send warning for possible rabbit consumer shutdown
+     *
+     * @param int $jobCount - Number of jobs that are queued for more than X hours
+     * @return void
+     */
+    protected static function sendShutDownWarning($jobCount)
+    {
+        $adminMail = QUI::conf('mail', 'admin_mail');
+
+        if (empty($adminMail)) {
+            return;
+        }
+
+        $Mailer = new \QUI\Mail\Mailer();
+        QUI::getLocale()->setCurrent(QUI::conf('globals', 'standardLanguage'));
+
+        $Mailer->setBody(QUI::getLocale()->get(
+            'quiqqer/rabbitmqserver',
+            'jobchecker.mail.shutdown_warning',
+            [
+                'checkHours' => 3,
+                'jobCount'   => $jobCount
+            ]
+        ));
+
+        $Mailer->setSubject('quiqqqer/rabbitmqserver - Possible RabbitConsumer shutdown!');
+        $Mailer->addRecipient($adminMail);
+
+        try {
+            $Mailer->send();
+        } catch (\Exception $Exception) {
+            QUI\System\Log::addError($Exception->getMessage());
         }
     }
 
