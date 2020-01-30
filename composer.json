@@ -16,7 +16,7 @@
         "url": "http:\/\/www.pcsg.de"
     },
     "require": {
-        "quiqqer\/queuemanager": ">=1.0|dev-master|dev-dev",
+        "quiqqer\/queuemanager": "dev-master|dev-dev",
         "php-amqplib\/php-amqplib": "2.6.*"
     },
     "autoload": {
