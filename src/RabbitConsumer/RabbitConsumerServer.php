@@ -1,8 +1,5 @@
 <?php
 
-define('QUIQQER_SYSTEM', true);
-require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))).'/header.php';
-
 use QUI\RabbitMQServer\Server;
 
 if (!function_exists('pcntl_signal')) {
@@ -12,6 +9,40 @@ if (!function_exists('pcntl_signal')) {
 
 // run as daemon (forever)
 set_time_limit(0);
+
+// Load QUIQQER
+define('QUIQQER_SYSTEM', true);
+
+/**
+ * Load QUIQQER system
+ *
+ * First check if database connection is available, then require QUIQQER
+ *
+ * @return void
+ */
+function loadQUIQQER()
+{
+    // Check if database is available
+    $quiqqerCfg = \parse_ini_file(dirname(__FILE__, 6).'/etc/conf.ini.php', true);
+    $db         = $quiqqerCfg['db'];
+
+    $dsn = $db['driver'].':dbname='.$db['database'].';host='.$db['host'];
+
+    try {
+        new \PDO($dsn, $db['user'], $db['password']);
+    } catch (\Exception $Exception) {
+        echo "\nCould load QUIQQER because database connection failed. Retrying in 60 seconds. Error -> "
+             .$Exception->getMessage();
+
+        sleep(60);
+        loadQUIQQER();
+        return;
+    }
+
+    require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))).'/header.php';
+}
+
+loadQUIQQER();
 
 /**
  * Saves pids of RabbitConsumer.php processes and corresponding proc_open resource objects
