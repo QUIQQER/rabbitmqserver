@@ -65,7 +65,30 @@ class JobChecker
         ]);
 
         if (!empty($result)) {
-            self::sendShutDownWarning(count($result));
+            // Fetch IDs already reported on
+            $cache          = 'quiqqer/rabbitmqserver/job_checker_reported_shutdown_ids';
+            $newShutdownIds = \array_column($result, 'id');
+
+            try {
+                $reportedShutdownIds = QUICacheManager::get($cache);
+            } catch (\Exception $Exception) {
+                // nothing
+                $reportedShutdownIds = [];
+            }
+
+            $diff = \array_diff($newShutdownIds, $reportedShutdownIds);
+
+            if (!empty($diff)) {
+                QUICacheManager::set(
+                    $cache,
+                    \array_merge(
+                        $reportedShutdownIds,
+                        $newShutdownIds
+                    )
+                );
+
+                self::sendShutDownWarning($diff);
+            }
         }
 
         // get all jobs that are too long in the queue
@@ -136,10 +159,10 @@ class JobChecker
     /**
      * Send warning for possible rabbit consumer shutdown
      *
-     * @param int $jobCount - Number of jobs that are queued for more than X hours
+     * @param array $jobIds
      * @return void
      */
-    protected static function sendShutDownWarning($jobCount)
+    protected static function sendShutDownWarning(array $jobIds)
     {
         $adminMail = QUI::conf('mail', 'admin_mail');
 
@@ -155,7 +178,8 @@ class JobChecker
             'jobchecker.mail.shutdown_warning',
             [
                 'checkHours' => 3,
-                'jobCount'   => $jobCount
+                'jobCount'   => \count($jobIds),
+                'jobIds'     => \implode(', ', $jobIds)
             ]
         ));
 
