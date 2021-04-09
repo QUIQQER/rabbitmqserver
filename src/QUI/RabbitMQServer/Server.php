@@ -390,7 +390,12 @@ class Server implements IQueueServer
             )
         );
 
-        return $CloneJob->queue();
+        $cloneJobId = $CloneJob->queue(false);
+
+        // Set old job to "CLONED" status
+        self::setJobStatus($jobId, self::JOB_STATUS_CLONED);
+
+        return $cloneJobId;
     }
 
     /**
