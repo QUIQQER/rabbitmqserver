@@ -54,7 +54,7 @@ class Server implements IQueueServer
         try {
             QUI::getDataBase()->insert(
                 QUIQServer::getJobTable(),
-                array(
+                [
                     'jobData'        => json_encode($QueueJob->getData()),
                     'jobWorker'      => $QueueJob->getWorkerClass(),
                     'status'         => self::JOB_STATUS_QUEUED,
@@ -62,19 +62,19 @@ class Server implements IQueueServer
                     'deleteOnFinish' => $QueueJob->getAttribute('deleteOnFinish') ? 1 : 0,
                     'createTime'     => time(),
                     'lastUpdateTime' => time()
-                )
+                ]
             );
 
             $Channel = self::getChannel();
             $jobId   = QUI::getDataBase()->getPDO()->lastInsertId();
 
-            $workerData = array(
+            $workerData = [
                 'jobId'         => $jobId,
                 'jobData'       => $QueueJob->getData(),
                 'jobAttributes' => $QueueJob->getAttributes(),
                 'jobWorker'     => $QueueJob->getWorkerClass(),
                 'priority'      => $QueueJob->getAttribute('priority') ?: 1
-            );
+            ];
 
             $priority = (int)$QueueJob->getAttribute('priority');
 
@@ -87,23 +87,23 @@ class Server implements IQueueServer
             $Channel->basic_publish(
                 new AMQPMessage(
                     json_encode($workerData),
-                    array(
+                    [
                         'priority'      => $priority,
                         'delivery_mode' => 2 // make message durable
-                    )
+                    ]
                 ),
                 '',
                 self::getUniqueQueueName()
             );
         } catch (\Exception $Exception) {
             QUI\System\Log::addError(
-                self::class . ' -> queueJob() :: ' . $Exception->getMessage()
+                self::class.' -> queueJob() :: '.$Exception->getMessage()
             );
 
-            throw new QUI\Exception(array(
+            throw new QUI\Exception([
                 'quiqqer/rabbitmqserver',
                 'exception.rabbitmqserver.job.queue.error'
-            ));
+            ]);
         }
 
         self::setJobStatus($jobId, self::JOB_STATUS_QUEUED);
@@ -124,23 +124,23 @@ class Server implements IQueueServer
     {
         switch (self::getJobStatus($jobId)) {
             case self::JOB_STATUS_QUEUED:
-                throw new QUI\Exception(array(
+                throw new QUI\Exception([
                     'quiqqer/queueserver',
                     'exception.queueserver.result.job.queued',
-                    array(
+                    [
                         'jobId' => $jobId
-                    )
-                ));
+                    ]
+                ]);
                 break;
 
             case self::JOB_STATUS_RUNNING:
-                throw new QUI\Exception(array(
+                throw new QUI\Exception([
                     'quiqqer/queueserver',
                     'exception.queueserver.result.job.running',
-                    array(
+                    [
                         'jobId' => $jobId
-                    )
-                ));
+                    ]
+                ]);
                 break;
         }
 
@@ -168,28 +168,28 @@ class Server implements IQueueServer
 
         switch ($jobStatus) {
             case self::JOB_STATUS_FINISHED:
-                throw new QUI\Exception(array(
+                throw new QUI\Exception([
                     'quiqqer/queueserver',
                     'exception.queueserver.setjobersult.job.finished',
-                    array(
+                    [
                         'jobId' => $jobId
-                    )
-                ));
+                    ]
+                ]);
                 break;
 
             case self::JOB_STATUS_ERROR:
-                throw new QUI\Exception(array(
+                throw new QUI\Exception([
                     'quiqqer/queueserver',
                     'exception.queueserver.setjobersult.job.error',
-                    array(
+                    [
                         'jobId' => $jobId
-                    )
-                ));
+                    ]
+                ]);
                 break;
         }
 
         if (empty($result)) {
-            $result = array();
+            $result = [];
         }
 
         $result = json_encode($result);
@@ -200,9 +200,9 @@ class Server implements IQueueServer
                 QUI::getLocale()->get(
                     'quiqqer/queueserver',
                     'error.json.encode.job.result',
-                    array(
-                        'error' => json_last_error_msg() . ' (JSON Error code: ' . json_last_error() . ')'
-                    )
+                    [
+                        'error' => json_last_error_msg().' (JSON Error code: '.json_last_error().')'
+                    ]
                 )
             );
 
@@ -212,12 +212,12 @@ class Server implements IQueueServer
         try {
             QUI::getDataBase()->update(
                 'queueserver_jobs',
-                array(
+                [
                     'resultData' => $result
-                ),
-                array(
+                ],
+                [
                     'id' => $jobId
-                )
+                ]
             );
         } catch (\Exception $Exception) {
             // @todo Fehlermeldung und Log
@@ -237,21 +237,21 @@ class Server implements IQueueServer
      */
     protected static function getJobData($jobId)
     {
-        $result = QUI::getDataBase()->fetch(array(
+        $result = QUI::getDataBase()->fetch([
             'from'  => 'queueserver_jobs',
-            'where' => array(
+            'where' => [
                 'id' => $jobId
-            )
-        ));
+            ]
+        ]);
 
         if (empty($result)) {
-            throw new QUI\Exception(array(
+            throw new QUI\Exception([
                 'quiqqer/queueserver',
                 'exception.queueserver.job.not.found',
-                array(
+                [
                     'jobId' => $jobId
-                )
-            ), 404);
+                ]
+            ], 404);
         }
 
         return current($result);
@@ -275,13 +275,13 @@ class Server implements IQueueServer
         try {
             QUI::getDataBase()->update(
                 'queueserver_jobs',
-                array(
+                [
                     'status'         => $status,
                     'lastUpdateTime' => time()
-                ),
-                array(
+                ],
+                [
                     'id' => $jobId
-                )
+                ]
             );
         } catch (\Exception $Exception) {
             return false;
@@ -312,19 +312,19 @@ class Server implements IQueueServer
     public static function writeJobLogEntry($jobId, $msg)
     {
         $jobLog   = self::getJobLog($jobId);
-        $jobLog[] = array(
+        $jobLog[] = [
             'time' => date('Y.m.d H:i:s'),
             'msg'  => $msg
-        );
+        ];
 
         QUI::getDataBase()->update(
             QUI\QueueServer\Server::getJobTable(),
-            array(
+            [
                 'jobLog' => json_encode($jobLog)
-            ),
-            array(
+            ],
+            [
                 'id' => $jobId
-            )
+            ]
         );
 
         return true;
@@ -342,7 +342,7 @@ class Server implements IQueueServer
         $jobLog  = $jobData['jobLog'];
 
         if (empty($jobLog)) {
-            return array();
+            return [];
         }
 
         return json_decode($jobLog, true);
@@ -384,10 +384,10 @@ class Server implements IQueueServer
         $CloneJob = new QueueJob(
             $jobData['jobWorker'],
             json_decode($jobData['jobData'], true),
-            array(
+            [
                 'priority'       => $priority,
                 'deleteOnFinish' => $jobData['deleteOnFinish']
-            )
+            ]
         );
 
         $cloneJobId = $CloneJob->queue(false);
@@ -456,26 +456,26 @@ class Server implements IQueueServer
                 false,
                 false,
                 false,
-                array(
-                    'x-max-priority' => array('I', 255)
-                )
+                [
+                    'x-max-priority' => ['I', 255]
+                ]
             );
 //        self::$Channel->queue_bind('quiqqer_queue', 'quiqqer_exchange');
 //        self::$Channel->queue_declare('quiqqer', false, true, false, false);
         } catch (\Exception $Exception) {
             QUI\System\Log::addError(
                 'Something went wrong while trying to establish a connection to the'
-                . ' RabbitMQ Server :: ' . $Exception->getMessage()
+                .' RabbitMQ Server :: '.$Exception->getMessage()
             );
 
-            throw new QUI\Exception(array(
+            throw new QUI\Exception([
                 'quiqqer/rabbitmqserver',
                 'exception.server.connection.error',
-                array(
+                [
                     'host' => self::getServerSetting('host'),
                     'port' => self::getServerSetting('port')
-                )
-            ));
+                ]
+            ]);
         }
 
         return self::$Channel;
@@ -522,7 +522,7 @@ class Server implements IQueueServer
     public static function getUniqueQueueName()
     {
         $varDir        = QUI::getPackage('quiqqer/rabbitmqserver')->getVarDir();
-        $queueNameFile = $varDir . 'queuename';
+        $queueNameFile = $varDir.'queuename';
         $queueName     = FileUtils::getFileContent($queueNameFile);
 
         if (!empty($queueName)) {

@@ -2,7 +2,7 @@
 
 define('QUIQQER_SYSTEM', true);
 define('QUIQQER_CONSOLE', true);
-require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))) . '/header.php';
+require_once dirname(dirname(dirname(dirname(dirname(__FILE__))))).'/header.php';
 
 use QUI\RabbitMQServer\Server;
 use Namefruits\Juicer\Handler\Tables as JuicerTables;
@@ -48,8 +48,8 @@ function memoryCheck()
 
     if ($approxTotalUsage > $memoryThreshold) {
         QUI\System\Log::addInfo(
-            'RabbitConsumer (pid: ' . getmypid() . ') exiting because total memory usage has'
-            . ' reached ' . $approxTotalUsage . 'MB'
+            'RabbitConsumer (pid: '.getmypid().') exiting because total memory usage has'
+            .' reached '.$approxTotalUsage.'MB'
         );
 
         shutdown();
@@ -77,7 +77,7 @@ function requeue()
     $CurrentWorker->cloneJob($currentPriority);
 
     QUI\System\Log::addInfo(
-        'Re-queueing Job #' . $currentJobId . ' ("' . $CurrentWorker::getClass() . '")'
+        'Re-queueing Job #'.$currentJobId.' ("'.$CurrentWorker::getClass().'")'
     );
 
     callbackEnd();
@@ -109,7 +109,7 @@ $errorHandler = function () {
         );
     } else {
         QUI\System\Log::addError(
-            'RabbitConsumer shutdown :: ' . json_encode($error)
+            'RabbitConsumer shutdown :: '.json_encode($error)
         );
     }
 
@@ -121,7 +121,7 @@ $errorHandler = function () {
     requeue();
 
     QUI\System\Log::addDebug(
-        'Cloning Job "' . $CurrentWorker::getClass() . '" because of error -> ' . $error['type'] . ": " . $error['message']
+        'Cloning Job "'.$CurrentWorker::getClass().'" because of error -> '.$error['type'].": ".$error['message']
     );
 };
 
@@ -134,14 +134,14 @@ $errorHandler = function () {
 function checkDBConnection()
 {
     try {
-        QUI::getDataBase()->fetch(array(
+        QUI::getDataBase()->fetch([
             'count' => 1,
             'from'  => JuicerTables::getProjectsTable()
-        ));
+        ]);
     } catch (\Exception $Exception) {
         QUI\System\Log::addWarning(
             'MySQL connection seems to be lost, reconnecting. Database error that was thrown: '
-            . $Exception->getMessage()
+            .$Exception->getMessage()
         );
 
         QUI::$DataBase2 = null;
@@ -181,7 +181,7 @@ $callback = function ($msg) {
     if (json_last_error() !== JSON_ERROR_NONE) {
         QUI\System\Log::addError(
             'RabbitConsumer.php :: JSON error on job data json_decode ('
-            . json_last_error_msg() . ' [code: ' . json_last_error() . ']. Abort process.'
+            .json_last_error_msg().' [code: '.json_last_error().']. Abort process.'
         );
 
         $Channel->basic_ack($msg->delivery_info['delivery_tag']);
@@ -242,8 +242,8 @@ $callback = function ($msg) {
         }
 
         QUI\System\Log::addError(
-            'RabbitConsumer.php (Job #' . $jobId . ') :: Error while initializing Worker class (' . $job['jobWorker'] . ') -> '
-            . $Exception->getMessage() . '. Abort process.'
+            'RabbitConsumer.php (Job #'.$jobId.') :: Error while initializing Worker class ('.$job['jobWorker'].') -> '
+            .$Exception->getMessage().'. Abort process.'
         );
 
         QUI\System\Log::writeException($Exception);
@@ -255,13 +255,12 @@ $callback = function ($msg) {
     try {
         Server::setJobStatus($jobId, Server::JOB_STATUS_RUNNING);
         Server::setJobResult($jobId, $Worker->execute());
+        Server::setJobStatus($jobId, Server::JOB_STATUS_FINISHED);
 
         unset($Worker);
 
         // start garbage collection manually to try to cleanup any memory leakage
         gc_collect_cycles();
-
-        Server::setJobStatus($jobId, Server::JOB_STATUS_FINISHED);
     } catch (\Exception $Exception) {
         if (isDBException($Exception)) {
             requeue();
@@ -269,8 +268,8 @@ $callback = function ($msg) {
         }
 
         QUI\System\Log::addError(
-            'RabbitConsumer.php (Job #' . $jobId . ') :: Error while executing Worker (' . $job['jobWorker'] . ') -> '
-            . $Exception->getMessage() . '. Abort process.'
+            'RabbitConsumer.php (Job #'.$jobId.') :: Error while executing Worker ('.$job['jobWorker'].') -> '
+            .$Exception->getMessage().'. Abort process.'
         );
 
         QUI\System\Log::writeException($Exception);
@@ -293,8 +292,8 @@ $callback = function ($msg) {
             }
 
             QUI\System\Log::addError(
-                'RabbitConsumer.php (Job #' . $jobId . ') :: Error while deleteting Job -> '
-                . $Exception->getMessage() . '. Abort process.'
+                'RabbitConsumer.php (Job #'.$jobId.') :: Error while deleteting Job -> '
+                .$Exception->getMessage().'. Abort process.'
             );
 
             QUI\System\Log::writeException($Exception);
@@ -352,7 +351,7 @@ function getChannel()
     } catch (\Exception $Exception) {
         QUI\System\Log::addError(
             'Exiting RabbitConsumer because there was a connection error to the RabbitMQ server'
-            . ': ' . $Exception->getMessage()
+            .': '.$Exception->getMessage()
         );
 
         exit;
